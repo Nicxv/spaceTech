@@ -86,3 +86,16 @@ class ProveedorForm(forms.ModelForm):
     class Meta:
         model = Proveedor
         fields = ['rut_empresa', 'nombre_empresa', 'representante_legal', 'contacto_empresa', 'direccion_proveedor', 'email_proveedor']
+
+from django import forms
+from .models import ProductosProveedor
+
+class ProductosProveedorForm(forms.ModelForm):
+    class Meta:
+        model = ProductosProveedor
+        fields = ['nombre_producto', 'foto_producto', 'precio_costo']
+        widgets = {
+            'nombre_producto': forms.TextInput(attrs={'class': 'form-control'}),
+            'foto_producto': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'precio_costo': forms.NumberInput(attrs={'class': 'form-control'}),
+        }

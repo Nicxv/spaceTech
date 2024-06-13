@@ -127,7 +127,7 @@ class DetalleCompra(models.Model):
     correlativo = models.IntegerField(editable=False)
     id_articulo = models.ForeignKey('Articulos', verbose_name='Articulos', on_delete=models.RESTRICT)
     cantidad = models.PositiveIntegerField(verbose_name='Cantidad')
-    precio_costo = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Precio de Costo')
+    
     sub_total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Sub Total')
 
     class Meta:
@@ -138,3 +138,13 @@ class DetalleCompra(models.Model):
             last_correlativo = DetalleCompra.objects.filter(id_orden_compra=self.id_orden_compra).count()
             self.correlativo = last_correlativo + 1
         super().save(args, **kwargs)
+
+
+
+class ProductosProveedor(models.Model):
+    proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE, related_name='productos')
+    nombre_producto = models.CharField(max_length=100, verbose_name='Nombre del Producto')
+    foto_producto = models.ImageField(upload_to='productos_proveedor/', verbose_name='Foto del Producto')
+    precio_costo = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Precio de Costo')
+    def __str__(self):
+        return self.nombre_producto    
