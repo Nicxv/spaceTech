@@ -555,3 +555,27 @@ def detalle_proveedor(request, proveedor_id):
     proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
     productos = ProductosProveedor.objects.filter(proveedor=proveedor)
     return render(request, 'detalle_proveedor.html', {'proveedor': proveedor, 'productos': productos})
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Proveedor, ProductosProveedor
+from .forms import ProductosProveedorForm
+
+def editar_producto_proveedor(request, producto_id):
+    producto = get_object_or_404(ProductosProveedor, id=producto_id)
+    if request.method == 'POST':
+        form = ProductosProveedorForm(request.POST, request.FILES, instance=producto)
+        if form.is_valid():
+            form.save()
+            return redirect('detalle_proveedor', proveedor_id=producto.proveedor.id_proveedor)
+    else:
+        form = ProductosProveedorForm(instance=producto)
+    return render(request, 'editar_producto_proveedor.html', {'form': form, 'producto': producto})
+
+def eliminar_producto_proveedor(request, producto_id):
+    producto = get_object_or_404(ProductosProveedor, id=producto_id)
+    proveedor_id = producto.proveedor.id_proveedor
+    if request.method == 'POST':
+        producto.delete()
+        return redirect('detalle_proveedor', proveedor_id=proveedor_id)
+    return render(request, 'eliminar_producto_proveedor.html', {'producto': producto})

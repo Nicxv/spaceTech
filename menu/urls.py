@@ -65,8 +65,10 @@ urlpatterns = [
     path('proveedor/edit/<int:pk>/', proveedor_edit, name='proveedor_edit'),
     path('proveedor/delete/<int:pk>/', proveedor_delete, name='proveedor_delete'),
 
-    path('proveedor/<int:proveedor_id>/agregar_producto/', views.agregar_producto_proveedor, name='agregar_producto_proveedor'),
     path('proveedor/<int:proveedor_id>/', views.detalle_proveedor, name='detalle_proveedor'),
+    path('proveedor/<int:proveedor_id>/agregar_producto/', views.agregar_producto_proveedor, name='agregar_producto_proveedor'),
+    path('producto/<int:producto_id>/editar/', views.editar_producto_proveedor, name='editar_producto_proveedor'),
+    path('producto/<int:producto_id>/eliminar/', views.eliminar_producto_proveedor, name='eliminar_producto_proveedor'),
 
 
 ]
