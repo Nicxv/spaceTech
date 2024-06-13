@@ -666,3 +666,144 @@ def resumen_compra(request):
     items = ProveedorCarritoItem.objects.filter(carrito=carrito)
     total = sum(item.producto.precio_costo * item.cantidad for item in items)
     return render(request, 'resumen_compra.html', {'items': items, 'total': total})
+
+import os
+from io import BytesIO
+from django.http import HttpResponse
+from django.conf import settings
+from fpdf import FPDF
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import ProveedorCarritoItem
+
+class PDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, 'Resumen de la Compra', 0, 1, 'C')
+        self.ln(10)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Arial', 'I', 8)
+        self.cell(0, 10, f'Pagina {self.page_no()}', 0, 0, 'C')
+
+    def chapter_title(self, title):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, title, 0, 1, 'L')
+        self.ln(5)
+
+    def chapter_body(self, body):
+        self.set_font('Arial', '', 12)
+        self.multi_cell(0, 10, body)
+        self.ln()
+
+@login_required
+def descargar_pdf(request, item_id):
+    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
+    proveedor = item.producto.proveedor
+
+    # Crear el PDF
+    pdf = PDF()
+    pdf.add_page()
+
+    # Añadir contenido al PDF
+    pdf.chapter_title("Detalles del Proveedor")
+    pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
+
+    pdf.chapter_title("Detalles del Producto")
+    pdf.chapter_body(f"Producto: {item.producto.nombre_producto}")
+    pdf.chapter_body(f"Precio: ${item.producto.precio_costo}")
+    pdf.chapter_body(f"Cantidad: {item.cantidad}")
+    pdf.chapter_body(f"Subtotal: ${item.cantidad * item.producto.precio_costo}")
+
+    # Guardar el PDF en un BytesIO buffer
+    pdf_buffer = BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+    
+    # Crear la respuesta HTTP con el PDF
+    response = HttpResponse(pdf_buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="resumen_compra_{item_id}.pdf"'
+    
+    return response
+
+
+import os
+from io import BytesIO
+from django.core.mail import EmailMessage
+from django.http import HttpResponse
+from django.conf import settings
+from fpdf import FPDF
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import ProveedorCarritoItem
+
+class PDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, 'Resumen de la Compra', 0, 1, 'C')
+        self.ln(10)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Arial', 'I', 8)
+        self.cell(0, 10, f'Pagina {self.page_no()}', 0, 0, 'C')
+
+    def chapter_title(self, title):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, title, 0, 1, 'L')
+        self.ln(5)
+
+    def chapter_body(self, body):
+        self.set_font('Arial', '', 12)
+        self.multi_cell(0, 10, body)
+        self.ln()
+
+@login_required
+def aceptar_producto(request, item_id):
+    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
+    proveedor = item.producto.proveedor
+
+    # Crear el PDF
+    pdf = PDF()
+    pdf.add_page()
+
+    # Añadir contenido al PDF
+    pdf.chapter_title("Detalles del Proveedor")
+    pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
+
+    pdf.chapter_title("Detalles del Producto")
+    pdf.chapter_body(f"Producto: {item.producto.nombre_producto}")
+    pdf.chapter_body(f"Precio: ${item.producto.precio_costo}")
+    pdf.chapter_body(f"Cantidad: {item.cantidad}")
+    pdf.chapter_body(f"Subtotal: ${item.cantidad * item.producto.precio_costo}")
+
+    # Guardar el PDF en un BytesIO buffer
+    pdf_buffer = BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+    
+    # Crear el correo electrónico
+    email = EmailMessage(
+        'Resumen de la Compra',
+        'Adjunto encontrará el resumen de la compra.',
+        settings.DEFAULT_FROM_EMAIL,
+        [proveedor.email_proveedor],
+    )
+    email.attach(f'resumen_compra_{item_id}.pdf', pdf_buffer.getvalue(), 'application/pdf')
+    
+    # Enviar el correo
+    email.send()
+    
+    # Lógica para aceptar el producto (puede ser guardar en otra tabla, generar una orden, etc.)
+    item.delete()  # Aquí solo lo eliminamos del carrito como ejemplo
+    
+    return redirect('resumen_compra')
+
+@login_required
+def rechazar_producto(request, item_id):
+    # Lógica de rechazar producto (actualmente vacía)
+    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
+    return redirect('resumen_compra')
+
+

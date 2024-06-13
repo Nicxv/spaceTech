@@ -80,6 +80,9 @@ urlpatterns = [
     path('proveedor_carrito/aumentar/<int:item_id>/', views.aumentar_cantidad, name='aumentar_cantidad'),
     path('proveedor_carrito/disminuir/<int:item_id>/', views.disminuir_cantidad, name='disminuir_cantidad'),
     path('resumen_compra/', views.resumen_compra, name='resumen_compra'),
+    path('aceptar_producto/<int:item_id>/', views.aceptar_producto, name='aceptar_producto'),
+    path('rechazar_producto/<int:item_id>/', views.rechazar_producto, name='rechazar_producto'),
+    path('descargar_pdf/<int:item_id>/', views.descargar_pdf, name='descargar_pdf'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

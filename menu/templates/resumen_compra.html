@@ -13,7 +13,6 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Proveedor ID</th>
                     <th>Nombre de la Empresa</th>
                     <th>Nombre del Producto</th>
                     <th>Precio</th>
@@ -26,7 +25,6 @@
             <tbody>
                 {% for item in items %}
                 <tr>
-                    <td>{{ item.producto.proveedor.id }}</td>
                     <td>{{ item.producto.proveedor.nombre_empresa }}</td>
                     <td>{{ item.producto.nombre_producto }}</td>
                     <td>{{ item.producto.precio_costo }}</td>
@@ -34,8 +32,9 @@
                     <td>{{ item.cantidad|multiply:item.producto.precio_costo }}</td>
                     <td><img src="{{ item.producto.foto_producto.url }}" alt="{{ item.producto.nombre_producto }}" width="100"></td>
                     <td>
-                        <a href="" class="btn btn-success">Aceptar</a>
-                        <a href="" class="btn btn-danger">Rechazar</a>
+                        <a href="{% url 'aceptar_producto' item.id %}" class="btn btn-success">Aceptar</a>
+                        <a href="{% url 'rechazar_producto' item.id %}" class="btn btn-danger">Rechazar</a>
+                        <a href="{% url 'descargar_pdf' item.id %}" class="btn btn-info">Descargar PDF</a>
                     </td>
                 </tr>
                 {% endfor %}
