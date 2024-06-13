@@ -69,6 +69,8 @@ urlpatterns = [
     path('proveedor/<int:proveedor_id>/agregar_producto/', views.agregar_producto_proveedor, name='agregar_producto_proveedor'),
     path('producto/<int:producto_id>/editar/', views.editar_producto_proveedor, name='editar_producto_proveedor'),
     path('producto/<int:producto_id>/eliminar/', views.eliminar_producto_proveedor, name='eliminar_producto_proveedor'),
+    path('proveedor/<int:proveedor_id>/comprar_productos/', views.comprar_productos_proveedor, name='comprar_productos_proveedor'),
+    path('producto/<int:producto_id>/comprar/', views.comprar_producto, name='comprar_producto'),
 
 
 ]

@@ -579,3 +579,17 @@ def eliminar_producto_proveedor(request, producto_id):
         producto.delete()
         return redirect('detalle_proveedor', proveedor_id=proveedor_id)
     return render(request, 'eliminar_producto_proveedor.html', {'producto': producto})
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Proveedor, ProductosProveedor
+
+def comprar_productos_proveedor(request, proveedor_id):
+    proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
+    productos = ProductosProveedor.objects.filter(proveedor=proveedor)
+    return render(request, 'comprar_productos_proveedor.html', {'proveedor': proveedor, 'productos': productos})
+
+def comprar_producto(request, producto_id):
+    producto = get_object_or_404(ProductosProveedor, id=producto_id)
+    # Lógica para manejar la compra del producto
+    return redirect('comprar_productos_proveedor', proveedor_id=producto.proveedor.id_proveedor)
