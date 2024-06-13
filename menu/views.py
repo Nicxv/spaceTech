@@ -614,13 +614,13 @@ def comprar_producto(request, producto_id):
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import ProveedorCarrito, ProveedorCarritoItem, ProductosProveedor
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
 
 @login_required
 def proveedor_carrito(request):
     carrito, created = ProveedorCarrito.objects.get_or_create(usuario=request.user)
     items = ProveedorCarritoItem.objects.filter(carrito=carrito)
-    return render(request, 'proveedor_carrito.html', {'carrito': carrito, 'items': items})
+    total = sum(item.producto.precio_costo * item.cantidad for item in items)
+    return render(request, 'proveedor_carrito.html', {'carrito': carrito, 'items': items, 'total': total})
 
 @login_required
 def agregar_al_proveedor_carrito(request, producto_id):
@@ -639,3 +639,30 @@ def eliminar_del_proveedor_carrito(request, item_id):
     item = get_object_or_404(ProveedorCarritoItem, id=item_id)
     item.delete()
     return redirect('proveedor_carrito')
+
+@login_required
+def aumentar_cantidad(request, item_id):
+    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
+    item.cantidad += 1
+    item.save()
+    return redirect('proveedor_carrito')
+
+@login_required
+def disminuir_cantidad(request, item_id):
+    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
+    if item.cantidad > 1:
+        item.cantidad -= 1
+        item.save()
+    return redirect('proveedor_carrito')
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import ProveedorCarrito, ProveedorCarritoItem
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def resumen_compra(request):
+    carrito, created = ProveedorCarrito.objects.get_or_create(usuario=request.user)
+    items = ProveedorCarritoItem.objects.filter(carrito=carrito)
+    total = sum(item.producto.precio_costo * item.cantidad for item in items)
+    return render(request, 'resumen_compra.html', {'items': items, 'total': total})

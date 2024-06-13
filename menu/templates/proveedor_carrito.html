@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito de Proveedores</title>
@@ -38,7 +37,11 @@
                             <p>Precio: ${{ item.producto.precio_costo }}</p>
                             <img src="{{ item.producto.foto_producto.url }}" alt="{{ item.producto.nombre_producto }}">
                         </div>
-                       
+                        <div class="quantity-controls">
+                            <a href="{% url 'disminuir_cantidad' item.id %}" class="btn btn-warning">-</a>
+                            <span>{{ item.cantidad }}</span>
+                            <a href="{% url 'aumentar_cantidad' item.id %}" class="btn btn-success">+</a>
+                        </div>
                         <div>
                             <p>Subtotal: ${{ item.cantidad|multiply:item.producto.precio_costo }}</p>
                             <a href="{% url 'eliminar_del_proveedor_carrito' item.id %}" class="btn btn-danger">Eliminar</a>
@@ -52,7 +55,7 @@
                 <p>Productos: {{ items|length }}</p>
                 <p>Total: ${{ total }}</p>
                 <a href="#" class="btn btn-secondary">Seguir Comprando</a>
-                <a href="#" class="btn btn-primary">Continuar Compra</a>
+                <a href="{% url 'resumen_compra' %}" class="btn btn-primary">Continuar Compra</a>
             </div>
         </div>
     </div>

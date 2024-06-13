@@ -77,7 +77,9 @@ urlpatterns = [
     path('proveedor_carrito/', views.proveedor_carrito, name='proveedor_carrito'),
     path('proveedor_carrito/agregar/<int:producto_id>/', views.agregar_al_proveedor_carrito, name='agregar_al_proveedor_carrito'),
     path('proveedor_carrito/eliminar/<int:item_id>/', views.eliminar_del_proveedor_carrito, name='eliminar_del_proveedor_carrito'),
-
+    path('proveedor_carrito/aumentar/<int:item_id>/', views.aumentar_cantidad, name='aumentar_cantidad'),
+    path('proveedor_carrito/disminuir/<int:item_id>/', views.disminuir_cantidad, name='disminuir_cantidad'),
+    path('resumen_compra/', views.resumen_compra, name='resumen_compra'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
