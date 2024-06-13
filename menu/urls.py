@@ -73,6 +73,11 @@ urlpatterns = [
     path('producto/<int:producto_id>/comprar/', views.comprar_producto, name='comprar_producto'),
 
 
+
+    path('proveedor_carrito/', views.proveedor_carrito, name='proveedor_carrito'),
+    path('proveedor_carrito/agregar/<int:producto_id>/', views.agregar_al_proveedor_carrito, name='agregar_al_proveedor_carrito'),
+    path('proveedor_carrito/eliminar/<int:item_id>/', views.eliminar_del_proveedor_carrito, name='eliminar_del_proveedor_carrito'),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

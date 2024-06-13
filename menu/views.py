@@ -589,7 +589,53 @@ def comprar_productos_proveedor(request, proveedor_id):
     productos = ProductosProveedor.objects.filter(proveedor=proveedor)
     return render(request, 'comprar_productos_proveedor.html', {'proveedor': proveedor, 'productos': productos})
 
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import ProveedorCarrito, ProveedorCarritoItem, ProductosProveedor
+from django.contrib.auth.decorators import login_required
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import ProveedorCarrito, ProveedorCarritoItem, ProductosProveedor
+from django.contrib.auth.decorators import login_required
+
+@login_required
 def comprar_producto(request, producto_id):
     producto = get_object_or_404(ProductosProveedor, id=producto_id)
-    # Lógica para manejar la compra del producto
-    return redirect('comprar_productos_proveedor', proveedor_id=producto.proveedor.id_proveedor)
+    carrito, created = ProveedorCarrito.objects.get_or_create(usuario=request.user)
+    item, item_created = ProveedorCarritoItem.objects.get_or_create(carrito=carrito, producto=producto)
+
+    if not item_created:
+        item.cantidad += 1
+        item.save()
+
+    return redirect('proveedor_carrito')
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import ProveedorCarrito, ProveedorCarritoItem, ProductosProveedor
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+
+@login_required
+def proveedor_carrito(request):
+    carrito, created = ProveedorCarrito.objects.get_or_create(usuario=request.user)
+    items = ProveedorCarritoItem.objects.filter(carrito=carrito)
+    return render(request, 'proveedor_carrito.html', {'carrito': carrito, 'items': items})
+
+@login_required
+def agregar_al_proveedor_carrito(request, producto_id):
+    producto = get_object_or_404(ProductosProveedor, id=producto_id)
+    carrito, created = ProveedorCarrito.objects.get_or_create(usuario=request.user)
+    item, item_created = ProveedorCarritoItem.objects.get_or_create(carrito=carrito, producto=producto)
+
+    if not item_created:
+        item.cantidad += 1
+        item.save()
+
+    return redirect('proveedor_carrito')
+
+@login_required
+def eliminar_del_proveedor_carrito(request, item_id):
+    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
+    item.delete()
+    return redirect('proveedor_carrito')

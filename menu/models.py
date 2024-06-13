@@ -148,3 +148,14 @@ class ProductosProveedor(models.Model):
     precio_costo = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Precio de Costo')
     def __str__(self):
         return self.nombre_producto    
+    
+
+class ProveedorCarrito(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+class ProveedorCarritoItem(models.Model):
+    carrito = models.ForeignKey(ProveedorCarrito, on_delete=models.CASCADE)
+    producto = models.ForeignKey(ProductosProveedor, on_delete=models.CASCADE)
+    cantidad = models.IntegerField(default=1)
+    agregado_en = models.DateTimeField(default=timezone.now)

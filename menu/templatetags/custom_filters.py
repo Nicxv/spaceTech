@@ -13,3 +13,4 @@ def format_price(value):
 @register.filter
 def multiply(value, arg):
     return value * arg
+
