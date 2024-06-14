@@ -811,11 +811,3 @@ def rechazar_producto(request, item_id):
     item.delete()
     return JsonResponse({'success': True})
 
-
-
-@login_required
-@require_POST
-def proveedor_delete(request, pk):
-    proveedor = get_object_or_404(Proveedor, pk=pk)
-    proveedor.delete()
-    return JsonResponse({'success': True})
