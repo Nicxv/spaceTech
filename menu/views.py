@@ -800,10 +800,14 @@ def aceptar_producto(request, item_id):
     
     return redirect('resumen_compra')
 
-@login_required
-def rechazar_producto(request, item_id):
-    # Lógica de rechazar producto (actualmente vacía)
-    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
-    return redirect('resumen_compra')
 
+from django.views.decorators.http import require_POST
+
+
+@login_required
+@require_POST
+def rechazar_producto(request, item_id):
+    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
+    item.delete()
+    return JsonResponse({'success': True})
 
