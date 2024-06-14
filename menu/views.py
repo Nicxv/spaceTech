@@ -813,7 +813,7 @@ def rechazar_producto(request, item_id):
 
 
 
-<<<<<<< HEAD
+
 # views.py
 from django.shortcuts import render, redirect
 from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions
@@ -850,7 +850,7 @@ def retorno_pago(request):
     except TransbankError as e:
         print(e.message)
         return render(request, 'error.html', {'message': e.message})
-=======
+
 
 # menu/views.py
 
@@ -982,4 +982,4 @@ def pago_exitoso(request):
     })
 
 
->>>>>>> 915e7544fbb3a4dcbed7a9414a04bb7b06b5f7de
+

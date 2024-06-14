@@ -84,14 +84,14 @@ urlpatterns = [
     path('rechazar_producto/<int:item_id>/', views.rechazar_producto, name='rechazar_producto'),
     path('descargar_pdf/<int:item_id>/', views.descargar_pdf, name='descargar_pdf'),
 
-<<<<<<< HEAD
+
     path('webpay/iniciar/', views.iniciar_pago, name='iniciar_pago'),
     path('webpay/retorno/', views.retorno_pago, name='retorno_pago'),
-=======
+
     path('iniciar_pago/', iniciar_pago, name='iniciar_pago'),
     path('confirmar_pago/', confirmar_pago, name='confirmar_pago'),
     path('pago_exitoso/', views.pago_exitoso, name='pago_exitoso'),
->>>>>>> 915e7544fbb3a4dcbed7a9414a04bb7b06b5f7de
+
 
 ]
 
