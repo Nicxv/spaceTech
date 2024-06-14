@@ -896,13 +896,51 @@ def confirmar_pago(request):
         # Vaciar el carrito
         items.delete()
 
-        # Renderizar la página de éxito
-        return render(request, 'pago_exitoso.html', {
-            'response': response, 
-            'venta': venta,
+        # Almacenar los datos en la sesión
+        request.session['response'] = {
+            'buy_order': response['buy_order'],
+            'transaction_date': response['transaction_date'],
+            'amount': response['amount'],
+            'status': response['status'],
+            'authorization_code': response['authorization_code'],
+            'payment_type_code': response['payment_type_code'],
+            'vci': response['vci']
+        }
+        request.session['venta'] = {
+            'id_boleta': venta.id_boleta,
             'nombre_usuario': usuario.nombre,
-            'apellido_usuario': usuario.apellido
-        })
+            'apellido_usuario': usuario.apellido,
+            'subtotal': float(venta.subtotal),
+            'iva': float(venta.iva),
+            'total': float(venta.total),
+            'productos': [
+                {
+                    'nombre': detalle.articulo.nombre,
+                    'cantidad': detalle.cantidad,
+                    'precio_unitario': float(detalle.precio_unitario),
+                    'total': float(detalle.total)
+                } for detalle in venta.detalleventa_set.all()
+            ]
+        }
+
+        # Redirigir a la página de éxito
+        return redirect('pago_exitoso')
     else:
         return render(request, 'pago_fallido.html', {'response': response})
+
+@login_required
+def pago_exitoso(request):
+    response = request.session.get('response')
+    venta = request.session.get('venta')
+
+    if not response or not venta:
+        return redirect('venta_productos')  # Redirigir si no hay datos en la sesión
+
+    return render(request, 'pago_exitoso.html', {
+        'response': response,
+        'venta': venta,
+        'nombre_usuario': venta['nombre_usuario'],
+        'apellido_usuario': venta['apellido_usuario']
+    })
+
 

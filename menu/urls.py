@@ -86,6 +86,7 @@ urlpatterns = [
 
     path('iniciar_pago/', iniciar_pago, name='iniciar_pago'),
     path('confirmar_pago/', confirmar_pago, name='confirmar_pago'),
+    path('pago_exitoso/', views.pago_exitoso, name='pago_exitoso'),
 
 ]
 if settings.DEBUG:
