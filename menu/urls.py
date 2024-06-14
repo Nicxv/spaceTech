@@ -83,6 +83,12 @@ urlpatterns = [
     path('aceptar_producto/<int:item_id>/', views.aceptar_producto, name='aceptar_producto'),
     path('rechazar_producto/<int:item_id>/', views.rechazar_producto, name='rechazar_producto'),
     path('descargar_pdf/<int:item_id>/', views.descargar_pdf, name='descargar_pdf'),
+
+    path('webpay/iniciar/', views.iniciar_pago, name='iniciar_pago'),
+    path('webpay/retorno/', views.retorno_pago, name='retorno_pago'),
+
 ]
+
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
