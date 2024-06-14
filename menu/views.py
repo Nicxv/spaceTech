@@ -814,6 +814,44 @@ def rechazar_producto(request, item_id):
 
 
 
+# views.py
+from django.shortcuts import render, redirect
+from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions
+from transbank.common.integration_type import IntegrationType
+from transbank.error.transbank_error import TransbankError
+
+def iniciar_pago(request):
+    buy_order = str(uuid.uuid4())  # Generar una orden de compra única
+    session_id = request.session.session_key
+    amount = request.POST.get('total')  # Obtén el monto total desde el formulario
+    return_url = request.build_absolute_uri('/webpay/retorno/')
+
+    try:
+        response = Transaction(WebpayOptions(IntegrationType.TEST, '597055555532')).create(
+            buy_order=buy_order, session_id=session_id, amount=amount, return_url=return_url
+        )
+        return redirect(response['url'] + '?token_ws=' + response['token'])
+    except TransbankError as e:
+        print(e.message)
+        return render(request, 'error.html', {'message': e.message})
+
+def retorno_pago(request):
+    token = request.GET.get('token_ws')
+    if not token:
+        return redirect('error')
+
+    try:
+        response = Transaction(WebpayOptions(IntegrationType.TEST, '597055555532')).commit(token=token)
+        if response['status'] == 'AUTHORIZED':
+            # Procesar la orden aquí
+            return render(request, 'success.html', {'response': response})
+        else:
+            return render(request, 'error.html', {'message': 'Pago no autorizado'})
+    except TransbankError as e:
+        print(e.message)
+        return render(request, 'error.html', {'message': e.message})
+
+
 # menu/views.py
 
 from django.shortcuts import render, redirect
@@ -942,5 +980,6 @@ def pago_exitoso(request):
         'nombre_usuario': venta['nombre_usuario'],
         'apellido_usuario': venta['apellido_usuario']
     })
+
 
 
