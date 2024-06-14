@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required, permission_required, 
 
 from django.contrib.auth import authenticate, login as auth_login, logout
 
-from menu.models import Articulos, Carrito, CarritoItem, Usuario
+from menu.models import Articulos, Carrito, CarritoItem, Usuario, Venta, DetalleVenta
 
 
 # Create your views here.
@@ -810,4 +810,99 @@ def rechazar_producto(request, item_id):
     item = get_object_or_404(ProveedorCarritoItem, id=item_id)
     item.delete()
     return JsonResponse({'success': True})
+
+
+
+
+# menu/views.py
+
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
+from transbank.common.integration_type import IntegrationType
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+import uuid
+
+@login_required
+def iniciar_pago(request):
+    total = request.GET.get('total')
+    if total is None:
+        return redirect('venta_productos')  # Redirigir a la página de venta si no hay total
+
+    total = int(total)  # Asegurarse de que el total sea un entero
+
+    tx = Transaction(WebpayOptions(
+        commerce_code=IntegrationCommerceCodes.WEBPAY_PLUS,
+        api_key=IntegrationApiKeys.WEBPAY,
+        integration_type=IntegrationType.TEST
+    ))
+
+    response = tx.create(
+        buy_order='ordenDeCompra12345',  # Debes generar un buy_order único
+        session_id='session123456',
+        amount=total,
+        return_url=request.build_absolute_uri(reverse('confirmar_pago'))
+    )
+
+    return redirect(f"{response['url']}?token_ws={response['token']}")
+
+@login_required
+def confirmar_pago(request):
+    token = request.GET.get('token_ws')
+    tx = Transaction(WebpayOptions(
+        commerce_code=IntegrationCommerceCodes.WEBPAY_PLUS,
+        api_key=IntegrationApiKeys.WEBPAY,
+        integration_type=IntegrationType.TEST
+    ))
+    response = tx.commit(token)
+
+    if response['status'] == 'AUTHORIZED':
+        # Obtener el carrito y los items
+        carrito = Carrito.objects.get(usuario=request.user)
+        items = CarritoItem.objects.filter(carrito=carrito)
+
+        # Calcular subtotal, IVA y total
+        subtotal = sum(item.producto.precio * item.cantidad for item in items)
+        iva = subtotal * 0.19  # Suponiendo que el IVA es del 19%
+        total = subtotal + iva
+
+        # Obtener la instancia de Usuario personalizada
+        usuario = Usuario.objects.get(email=request.user.email)
+
+        # Crear el registro de Venta
+        venta = Venta.objects.create(
+            usuario=usuario,
+            id_boleta=str(uuid.uuid4()),  # Generar un id_boleta único
+            subtotal=subtotal,
+            iva=iva,
+            total=total
+        )
+
+        # Crear los registros de DetalleVenta
+        for item in items:
+            DetalleVenta.objects.create(
+                venta=venta,
+                articulo=item.producto,
+                cantidad=item.cantidad,
+                precio_unitario=item.producto.precio,
+                total=item.producto.precio * item.cantidad
+            )
+
+            # Disminuir el stock del producto
+            item.producto.stock -= item.cantidad
+            item.producto.save()
+
+        # Vaciar el carrito
+        items.delete()
+
+        # Renderizar la página de éxito
+        return render(request, 'pago_exitoso.html', {
+            'response': response, 
+            'venta': venta,
+            'nombre_usuario': usuario.nombre,
+            'apellido_usuario': usuario.apellido
+        })
+    else:
+        return render(request, 'pago_fallido.html', {'response': response})
 

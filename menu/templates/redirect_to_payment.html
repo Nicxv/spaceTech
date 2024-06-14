@@ -1,0 +1,16 @@
+<!-- templates/redirect_to_payment.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirigiendo a Webpay</title>
+</head>
+<body>
+    <form method="post" action="{{ url }}">
+        <input type="hidden" name="token_ws" value="{{ token }}">
+        <input type="submit" value="Ir a pagar">
+    </form>
+</body>
+</html>

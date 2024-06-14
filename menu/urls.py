@@ -7,7 +7,7 @@ from .views import enviar_publicidad
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.urls import path
-from .views import proveedor_list, proveedor_add, proveedor_edit, proveedor_delete
+from .views import proveedor_list, proveedor_add, proveedor_edit, proveedor_delete, iniciar_pago, confirmar_pago
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -83,6 +83,10 @@ urlpatterns = [
     path('aceptar_producto/<int:item_id>/', views.aceptar_producto, name='aceptar_producto'),
     path('rechazar_producto/<int:item_id>/', views.rechazar_producto, name='rechazar_producto'),
     path('descargar_pdf/<int:item_id>/', views.descargar_pdf, name='descargar_pdf'),
+
+    path('iniciar_pago/', iniciar_pago, name='iniciar_pago'),
+    path('confirmar_pago/', confirmar_pago, name='confirmar_pago'),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
