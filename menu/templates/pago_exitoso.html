@@ -2,6 +2,8 @@
 
 <!DOCTYPE html>
 <html lang="es">
+    {% load custom_filters %}
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +18,7 @@
                 <h3 class="section-title">Detalles de la Transacción</h3>
                 <p><strong>Orden de Compra:</strong> {{ response.buy_order }}</p>
                 <p><strong>Fecha de Transacción:</strong> {{ response.transaction_date }}</p>
-                <p><strong>Monto:</strong> {{ response.amount }}</p>
+                <p><strong>Monto:</strong> {{ response.amount|format_price }}</p>
                 <p><strong>Estado:</strong> {{ response.status }}</p>
                 <p><strong>Código de Autorización:</strong> {{ response.authorization_code }}</p>
                 <p><strong>Tipo de Pago:</strong> {{ response.payment_type_code }}</p>
@@ -25,14 +27,14 @@
                 <h3 class="section-title">Detalles de la Venta</h3>
                 <p><strong>ID Boleta:</strong> {{ venta.id_boleta }}</p>
                 <p><strong>Nombre del Cliente:</strong> {{ nombre_usuario }} {{ apellido_usuario }}</p>
-                <p><strong>Subtotal:</strong> {{ venta.subtotal }}</p>
-                <p><strong>IVA:</strong> {{ venta.iva }}</p>
-                <p><strong>Total:</strong> {{ venta.total }}</p>
+                <p><strong>Subtotal:</strong> {{ venta.subtotal|format_price }}</p>
+                <p><strong>IVA:</strong> {{ venta.iva|format_price }}</p>
+                <p><strong>Total:</strong> {{ venta.total|format_price }}</p>
 
                 <h3 class="section-title">Productos Comprados</h3>
                 <ul>
                     {% for detalle in venta.detalleventa_set.all %}
-                    <li>{{ detalle.articulo.nombre }} - {{ detalle.cantidad }} x {{ detalle.precio_unitario }} = {{ detalle.total }}</li>
+                    <li>{{ detalle.articulo.nombre }} - {{ detalle.cantidad }} x {{ detalle.precio_unitario|format_price }} = {{ detalle.total|format_price }}</li>
                     {% endfor %}
                 </ul>
             </div>
