@@ -980,6 +980,3 @@ def pago_exitoso(request):
         'nombre_usuario': venta['nombre_usuario'],
         'apellido_usuario': venta['apellido_usuario']
     })
-
-
-
