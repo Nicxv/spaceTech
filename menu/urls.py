@@ -95,6 +95,8 @@ urlpatterns = [
 
 ]
 
-
+# Clave de google maps api
+# <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUjMYm_HVdhncKSb4nvc8e4Br3-pbfbfc&callback=initMap&libraries=places" async defer></script>
+# AIzaSyAUjMYm_HVdhncKSb4nvc8e4Br3-pbfbfc
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
