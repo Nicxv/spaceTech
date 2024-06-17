@@ -1011,4 +1011,85 @@ def pago_exitoso(request):
         'nombre_usuario': venta['nombre_usuario'],
         'apellido_usuario': venta['apellido_usuario']
     })
-guardar_direccion
+
+
+from fpdf import FPDF
+from django.http import HttpResponse
+
+
+class PDFFF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, 'Boleta de Venta', 0, 1, 'C')
+        self.ln(10)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Arial', 'I', 8)
+        self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+
+    def chapter_title(self, title):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, title, 0, 1, 'L')
+        self.ln(4)
+
+    def chapter_body(self, body):
+        self.set_font('Arial', '', 12)
+        self.multi_cell(0, 10, body)
+        self.ln()
+
+    def add_detail(self, label, value):
+        self.set_font('Arial', '', 12)
+        self.cell(0, 10, f'{label}: {value}', 0, 1, 'L')
+
+def format_price(price):
+    return f"${price:,.0f}".replace(",", ".")
+
+@login_required
+def generar_pdf(request):
+    venta = request.session.get('venta')
+    response = request.session.get('response')
+
+    if not response or not venta:
+        return redirect('venta_productos')
+
+    pdf = PDFFF()
+    pdf.add_page()
+
+    # Detalles de la transacción
+    pdf.chapter_title("Detalles de la Transacción")
+    pdf.add_detail("Orden de Compra", venta['id_boleta'])
+    pdf.add_detail("Fecha de Transacción", response['transaction_date'])
+    pdf.add_detail("Monto Total", format_price(venta['total']))
+
+    # Detalles de la venta
+    pdf.chapter_title("Detalles de la Venta")
+    pdf.add_detail("ID Boleta", venta['id_boleta'])
+    pdf.add_detail("Nombre del Cliente", f"{venta['nombre_usuario']} {venta['apellido_usuario']}")
+    if venta['direccion_envio'] == "Av. Principal 123, Ciudad":
+        pdf.add_detail("Dirección del Local", venta['direccion_envio'])
+    else:
+        pdf.add_detail("Dirección de Envío", venta['direccion_envio'])
+
+    # Totales
+    pdf.chapter_title("Totales")
+    pdf.add_detail("Subtotal", format_price(venta['subtotal']))
+    pdf.add_detail("IVA", format_price(venta['iva']))
+    pdf.add_detail("Precio de Envío", format_price(venta['precio_envio']))
+    pdf.add_detail("Total", format_price(venta['total']))
+
+    # Productos comprados
+    pdf.chapter_title("Productos Comprados")
+    for producto in venta['productos']:
+        pdf.multi_cell(0, 10, f"{producto['nombre']} - {producto['cantidad']} x {format_price(producto['precio_unitario'])}")
+
+    # Guardar el PDF en un BytesIO buffer
+    pdf_buffer = BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+    
+    # Crear la respuesta HTTP con el PDF
+    response = HttpResponse(pdf_buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Boleta_{venta["id_boleta"]}.pdf"'
+    
+    return response

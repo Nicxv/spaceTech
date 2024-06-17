@@ -92,6 +92,8 @@ urlpatterns = [
     path('confirmar_pago/', confirmar_pago, name='confirmar_pago'),
     path('pago_exitoso/', views.pago_exitoso, name='pago_exitoso'),
 
+    path('generar_pdf/', views.generar_pdf, name='generar_pdf'),
+
 
 ]
 
