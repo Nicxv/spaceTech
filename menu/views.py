@@ -1144,7 +1144,7 @@ def enviar_pdf(request):
     # Crear el correo electrónico
     email = EmailMessage(
         'Boleta de Venta',
-        'Adjunto encontrará la boleta de su compra.',
+        'Estimado/a cliente,\n\nGracias por su compra en nuestra tienda. Adjuntamos a este correo la boleta de su compra.\n\nSi tiene alguna pregunta o necesita más información, no dude en contactarnos.\n\nSaludos cordiales,\n\nEl equipo de SpaceTech',
         settings.DEFAULT_FROM_EMAIL,
         [request.user.email],  # Enviar al email del usuario logueado
     )
