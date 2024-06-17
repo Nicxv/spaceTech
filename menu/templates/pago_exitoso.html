@@ -67,8 +67,8 @@
         <div class="card-body">
             <h3 class="section-title">Detalles de la Transacción</h3>
             <div class="details">
-                <span>Orden de Compra:</span>
-                <span>{{ response.buy_order }}</span>
+                <span>ID Boleta:</span>
+                <span>{{ response.buy_order }}</span>  <!-- Mostrar id_boleta en lugar de buy_order -->
             </div>
             <div class="details">
                 <span>Fecha de Transacción:</span>
@@ -91,8 +91,13 @@
                 <span>{{ nombre_usuario }} {{ apellido_usuario }}</span>
             </div>
             <div class="details">
-                <span>Dirección de Envío:</span>
-                <span>{{ venta.direccion_envio }}</span>
+                <span>
+                    {% if venta.direccion_envio == "Av. Principal 123, Ciudad" %}
+                         Dirección del Local: {{ venta.direccion_envio }}
+                    {% else %}
+                         Direccion de Envío: {{ venta.direccion_envio }}
+                    {% endif %}
+                </span>
             </div>
             
             <div class="totals">

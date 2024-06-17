@@ -118,6 +118,44 @@ function toggleDeliveryOption() {
 
     document.getElementById('direccion_local').style.display = retiroLocalChecked ? 'block' : 'none';
     document.getElementById('direccion_cliente').style.display = envioDomicilioChecked ? 'block' : 'none';
+
+    if (retiroLocalChecked) {
+        // Almacenar la dirección del local en la sesión
+        fetch('/guardar_direccion/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ direccion: 'Av. Principal 123, Ciudad' })
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                direccionConfirmada = true;  // Confirmar la dirección para retiro en local
+                Swal.fire({
+                    title: 'Retiro local confirmado',
+                    text: 'Se a confirmado la opción de retiro en local',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error al guardar la dirección del local: ' + data.message,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al guardar la dirección del local',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
 }
 
 function confirmarDireccion() {

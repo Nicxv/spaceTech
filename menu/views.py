@@ -412,22 +412,26 @@ def guardar_direccion(request):
         try:
             data = json.loads(request.body)
             direccion = data['direccion']
-            usuario = request.user
-            perfil_usuario = Usuario.objects.get(email=usuario.email)
-            perfil_usuario.direccion = direccion
-            perfil_usuario.save()
 
-            # Buscar la comuna en la dirección
-            comunas = Comuna.objects.all()
-            comuna_nombre = None
-            for comuna in comunas:
-                if comuna.nombre in direccion:
-                    comuna_nombre = comuna.nombre
-                    precio_envio = comuna.precio_envio
-                    break
+            if direccion == 'Av. Principal 123, Ciudad':
+                precio_envio = 0  # Precio de envío para retiro en local
+            else:
+                usuario = request.user
+                perfil_usuario = Usuario.objects.get(email=usuario.email)
+                perfil_usuario.direccion = direccion
+                perfil_usuario.save()
 
-            if comuna_nombre is None:
-                return JsonResponse({'status': 'error', 'message': 'No Comuna matches the given query.'})
+                # Buscar la comuna en la dirección
+                comunas = Comuna.objects.all()
+                comuna_nombre = None
+                for comuna in comunas:
+                    if comuna.nombre in direccion:
+                        comuna_nombre = comuna.nombre
+                        precio_envio = comuna.precio_envio
+                        break
+
+                if comuna_nombre is None:
+                    return JsonResponse({'status': 'error', 'message': 'No Comuna matches the given query.'})
 
             # Guardar la dirección y el precio de envío en la sesión
             request.session['direccion'] = direccion
@@ -438,6 +442,7 @@ def guardar_direccion(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     else:
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'})
+
     
  
     
@@ -957,7 +962,7 @@ def confirmar_pago(request):
 
         # Almacenar los datos en la sesión
         request.session['response'] = {
-            'buy_order': response['buy_order'],
+            'buy_order': venta.id_boleta,  # Utilizar id_boleta en lugar de buy_order
             'transaction_date': response['transaction_date'],
             'amount': response['amount'],
             'status': response['status'],
@@ -990,6 +995,8 @@ def confirmar_pago(request):
         return render(request, 'pago_fallido.html', {'response': response})
 
 
+
+
 @login_required
 def pago_exitoso(request):
     response = request.session.get('response')
@@ -1004,3 +1011,4 @@ def pago_exitoso(request):
         'nombre_usuario': venta['nombre_usuario'],
         'apellido_usuario': venta['apellido_usuario']
     })
+guardar_direccion
