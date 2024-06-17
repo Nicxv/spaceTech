@@ -400,24 +400,6 @@ from django.shortcuts import render
 from .models import Carrito, CarritoItem
 
 
-@login_required
-def venta_productos(request):
-    if request.user.is_authenticated:
-        try:
-            # Obtener el perfil del usuario desde la base de datos
-            perfil_usuario = Usuario.objects.get(email=request.user.email)
-            direccion = perfil_usuario.direccion
-        except Usuario.DoesNotExist:
-            perfil_usuario = None
-            direccion = ""
-    else:
-        return redirect('login')
-    
-    carrito, created = Carrito.objects.get_or_create(usuario=request.user)
-    items = CarritoItem.objects.filter(carrito=carrito)
-    total = sum(item.producto.precio * item.cantidad for item in items)
-    
-    return render(request, 'venta_productos.html', {'items': items, 'total': total, 'direccion': direccion})
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -447,11 +429,16 @@ def guardar_direccion(request):
             if comuna_nombre is None:
                 return JsonResponse({'status': 'error', 'message': 'No Comuna matches the given query.'})
 
+            # Guardar la dirección y el precio de envío en la sesión
+            request.session['direccion'] = direccion
+            request.session['precio_envio'] = precio_envio
+
             return JsonResponse({'status': 'success', 'precio_envio': precio_envio})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
     else:
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'})
+    
  
     
 
@@ -862,6 +849,35 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 import uuid
 
+
+@login_required
+def venta_productos(request):
+    if request.user.is_authenticated:
+        try:
+            # Obtener el perfil del usuario desde la base de datos
+            perfil_usuario = Usuario.objects.get(email=request.user.email)
+            direccion = perfil_usuario.direccion
+        except Usuario.DoesNotExist:
+            perfil_usuario = None
+            direccion = ""
+    else:
+        return redirect('login')
+    
+    carrito, created = Carrito.objects.get_or_create(usuario=request.user)
+    items = CarritoItem.objects.filter(carrito=carrito)
+    subtotal = sum(item.producto.precio * item.cantidad for item in items)
+    iva = subtotal * 0.19  # Calcular el IVA (19%)
+    total = subtotal + iva
+    
+    return render(request, 'venta_productos.html', {
+        'items': items,
+        'subtotal': subtotal,
+        'iva': iva,
+        'total': total,
+        'direccion': direccion
+    })
+
+
 @login_required
 def iniciar_pago(request):
     total = request.GET.get('total')
@@ -908,6 +924,11 @@ def confirmar_pago(request):
         # Obtener la instancia de Usuario personalizada
         usuario = Usuario.objects.get(email=request.user.email)
 
+        # Obtener la dirección y el precio de envío desde la sesión
+        direccion_envio = request.session.get('direccion', '')
+        precio_envio = request.session.get('precio_envio', 0)
+        total += precio_envio  # Añadir el precio de envío al total
+
         # Crear el registro de Venta
         venta = Venta.objects.create(
             usuario=usuario,
@@ -951,6 +972,8 @@ def confirmar_pago(request):
             'subtotal': float(venta.subtotal),
             'iva': float(venta.iva),
             'total': float(venta.total),
+            'direccion_envio': direccion_envio,
+            'precio_envio': float(precio_envio),
             'productos': [
                 {
                     'nombre': detalle.articulo.nombre,
@@ -965,6 +988,7 @@ def confirmar_pago(request):
         return redirect('pago_exitoso')
     else:
         return render(request, 'pago_fallido.html', {'response': response})
+
 
 @login_required
 def pago_exitoso(request):

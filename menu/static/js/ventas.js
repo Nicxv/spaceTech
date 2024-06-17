@@ -266,8 +266,11 @@ function validarEntrega(event) {
         totalElement.innerText = `Total: ${formatPrice(total)}`;
     }
 
+    // Obtener la URL para iniciar el pago desde el meta tag
+    const iniciarPagoUrl = document.querySelector('meta[name="iniciar-pago-url"]').content;
+
     // Cambiar el href del enlace de pago con el total actualizado
     const totalElement = document.querySelector('.total');
     const total = parseFloat(totalElement.dataset.total);
-    document.querySelector('.btn-finalizar').href = `{% url 'iniciar_pago' %}?total=${total}`;
+    document.querySelector('.btn-finalizar').href = `${iniciarPagoUrl}?total=${total}`;
 }
