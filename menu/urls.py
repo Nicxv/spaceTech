@@ -93,6 +93,7 @@ urlpatterns = [
     path('pago_exitoso/', views.pago_exitoso, name='pago_exitoso'),
 
     path('generar_pdf/', views.generar_pdf, name='generar_pdf'),
+    path('enviar_pdf/', views.enviar_pdf, name='enviar_pdf'),
 
 
 ]
