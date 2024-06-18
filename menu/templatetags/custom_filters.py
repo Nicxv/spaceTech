@@ -14,3 +14,6 @@ def format_price(value):
 def multiply(value, arg):
     return value * arg
 
+@register.filter(name='get_value')
+def get_value(dictionary, key):
+    return dictionary.get(key, 0)   

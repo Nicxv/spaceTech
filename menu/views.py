@@ -648,25 +648,41 @@ def disminuir_cantidad(request, item_id):
     return redirect('proveedor_carrito')
 
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import ProveedorCarrito, ProveedorCarritoItem
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from .models import ProveedorCarrito, ProveedorCarritoItem
 
 @login_required
 def resumen_compra(request):
     carrito, created = ProveedorCarrito.objects.get_or_create(usuario=request.user)
     items = ProveedorCarritoItem.objects.filter(carrito=carrito)
     total = sum(item.producto.precio_costo * item.cantidad for item in items)
-    return render(request, 'resumen_compra.html', {'items': items, 'total': total})
+    
+    # Agrupar los productos por proveedor y calcular subtotales
+    items_by_proveedor = {}
+    subtotales_by_proveedor = {}
+    for item in items:
+        proveedor = item.producto.proveedor
+        if proveedor not in items_by_proveedor:
+            items_by_proveedor[proveedor] = []
+            subtotales_by_proveedor[proveedor] = 0
+        items_by_proveedor[proveedor].append(item)
+        subtotales_by_proveedor[proveedor] += item.producto.precio_costo * item.cantidad
+    
+    return render(request, 'resumen_compra.html', {
+        'items_by_proveedor': items_by_proveedor,
+        'subtotales_by_proveedor': subtotales_by_proveedor,
+        'total': total
+    })
 
-import os
 from io import BytesIO
 from django.http import HttpResponse
-from django.conf import settings
 from fpdf import FPDF
+from .models import ProveedorCarritoItem, Proveedor, ProveedorCarrito
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import ProveedorCarritoItem
+
+from fpdf import FPDF
 
 class PDF(FPDF):
     def header(self):
@@ -677,7 +693,7 @@ class PDF(FPDF):
     def footer(self):
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, f'Pagina {self.page_no()}', 0, 0, 'C')
+        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
 
     def chapter_title(self, title):
         self.set_font('Arial', 'B', 12)
@@ -689,10 +705,34 @@ class PDF(FPDF):
         self.multi_cell(0, 10, body)
         self.ln()
 
+    def add_table(self, items):
+        self.set_font('Arial', 'B', 12)
+        self.cell(40, 10, 'Producto', 1)
+        self.cell(30, 10, 'Precio', 1)
+        self.cell(30, 10, 'Cantidad', 1)
+        self.cell(30, 10, 'Subtotal', 1)
+        self.ln()
+
+        self.set_font('Arial', '', 12)
+        for item in items:
+            self.cell(40, 10, item.producto.nombre_producto, 1)
+            self.cell(30, 10, f"${item.producto.precio_costo:,.2f}", 1)
+            self.cell(30, 10, str(item.cantidad), 1)
+            self.cell(30, 10, f"${item.cantidad * item.producto.precio_costo:,.2f}", 1)
+            self.ln()
+
+    def add_total(self, subtotal):
+        self.ln(10)
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, f"Subtotal: ${subtotal:,.2f}", 0, 1, 'R')
 @login_required
-def descargar_pdf(request, item_id):
-    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
-    proveedor = item.producto.proveedor
+def descargar_pdf(request, proveedor_id):
+    proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
+    carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
+    items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
+
+    # Calcular subtotal
+    subtotal = sum(item.cantidad * item.producto.precio_costo for item in items)
 
     # Crear el PDF
     pdf = PDF()
@@ -702,11 +742,15 @@ def descargar_pdf(request, item_id):
     pdf.chapter_title("Detalles del Proveedor")
     pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
 
-    pdf.chapter_title("Detalles del Producto")
-    pdf.chapter_body(f"Producto: {item.producto.nombre_producto}")
-    pdf.chapter_body(f"Precio: ${item.producto.precio_costo}")
-    pdf.chapter_body(f"Cantidad: {item.cantidad}")
-    pdf.chapter_body(f"Subtotal: ${item.cantidad * item.producto.precio_costo}")
+    pdf.chapter_title("Detalles de los Productos")
+    for item in items:
+        pdf.chapter_body(f"Producto: {item.producto.nombre_producto}")
+        pdf.chapter_body(f"Precio: ${item.producto.precio_costo}")
+        pdf.chapter_body(f"Cantidad: {item.cantidad}")
+        pdf.chapter_body(f"Subtotal: ${item.cantidad * item.producto.precio_costo}")
+        pdf.ln(5)
+    
+    pdf.chapter_body(f"Subtotal para {proveedor.nombre_empresa}: ${subtotal}")
 
     # Guardar el PDF en un BytesIO buffer
     pdf_buffer = BytesIO()
@@ -715,20 +759,18 @@ def descargar_pdf(request, item_id):
     
     # Crear la respuesta HTTP con el PDF
     response = HttpResponse(pdf_buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="resumen_compra_{item_id}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="resumen_compra_proveedor_{proveedor_id}.pdf"'
     
     return response
 
-
-import os
-from io import BytesIO
 from django.core.mail import EmailMessage
-from django.http import HttpResponse
 from django.conf import settings
+from io import BytesIO
 from fpdf import FPDF
+from .models import ProveedorCarritoItem, Proveedor, ProveedorCarrito
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import ProveedorCarritoItem
+from django.contrib import messages
 
 class PDF(FPDF):
     def header(self):
@@ -739,7 +781,7 @@ class PDF(FPDF):
     def footer(self):
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, f'Pagina {self.page_no()}', 0, 0, 'C')
+        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
 
     def chapter_title(self, title):
         self.set_font('Arial', 'B', 12)
@@ -752,9 +794,13 @@ class PDF(FPDF):
         self.ln()
 
 @login_required
-def aceptar_producto(request, item_id):
-    item = get_object_or_404(ProveedorCarritoItem, id=item_id)
-    proveedor = item.producto.proveedor
+def aceptar_producto(request, proveedor_id):
+    proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
+    carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
+    items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
+
+    # Calcular subtotal
+    subtotal = sum(item.cantidad * item.producto.precio_costo for item in items)
 
     # Crear el PDF
     pdf = PDF()
@@ -764,11 +810,15 @@ def aceptar_producto(request, item_id):
     pdf.chapter_title("Detalles del Proveedor")
     pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
 
-    pdf.chapter_title("Detalles del Producto")
-    pdf.chapter_body(f"Producto: {item.producto.nombre_producto}")
-    pdf.chapter_body(f"Precio: ${item.producto.precio_costo}")
-    pdf.chapter_body(f"Cantidad: {item.cantidad}")
-    pdf.chapter_body(f"Subtotal: ${item.cantidad * item.producto.precio_costo}")
+    pdf.chapter_title("Detalles de los Productos")
+    for item in items:
+        pdf.chapter_body(f"Producto: {item.producto.nombre_producto}")
+        pdf.chapter_body(f"Precio: ${item.producto.precio_costo}")
+        pdf.chapter_body(f"Cantidad: {item.cantidad}")
+        pdf.chapter_body(f"Subtotal: ${item.cantidad * item.producto.precio_costo}")
+        pdf.ln(5)
+    
+    pdf.chapter_body(f"Subtotal para {proveedor.nombre_empresa}: ${subtotal}")
 
     # Guardar el PDF en un BytesIO buffer
     pdf_buffer = BytesIO()
@@ -782,15 +832,20 @@ def aceptar_producto(request, item_id):
         settings.DEFAULT_FROM_EMAIL,
         [proveedor.email_proveedor],
     )
-    email.attach(f'resumen_compra_{item_id}.pdf', pdf_buffer.getvalue(), 'application/pdf')
+    email.attach(f'resumen_compra_proveedor_{proveedor_id}.pdf', pdf_buffer.getvalue(), 'application/pdf')
     
     # Enviar el correo
-    email.send()
+    try:
+        email.send()
+        messages.success(request, 'Resumen de compra enviado por email exitosamente.')
+    except Exception as e:
+        messages.error(request, f'Error al enviar el email: {e}')
     
     # Lógica para aceptar el producto (puede ser guardar en otra tabla, generar una orden, etc.)
-    item.delete()  # Aquí solo lo eliminamos del carrito como ejemplo
+    items.delete()  # Aquí solo lo eliminamos del carrito como ejemplo
     
     return redirect('resumen_compra')
+
 
 
 from django.views.decorators.http import require_POST
