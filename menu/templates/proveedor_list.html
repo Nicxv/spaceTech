@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Proveedores</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/listaP.css' %}">
     <style>
@@ -46,17 +45,13 @@
 
         <div class="d-flex justify-content-end mb-3">
             <div class="dropup">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropupMenuButtonActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa-solid fa-plus"></i>
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropupMenuButtonActions" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-plus"></i> Opciones
                 </button>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropupMenuButtonActions">
-                    <a class="dropdown-item text-success" href="{% url 'proveedor_add' %}">
-                        <i class="fas fa-plus-circle"></i> Agregar Proveedor
-                    </a>
-                    <a class="dropdown-item text-info" href="{% url 'resumen_compra' %}">
-                        <i class="fas fa-eye"></i> Ver Compras
-                    </a>
-                </div>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropupMenuButtonActions">
+                    <li><a class="dropdown-item text-success" href="{% url 'proveedor_add' %}"><i class="fas fa-plus-circle"></i> Agregar Proveedor</a></li>
+                    <li><a class="dropdown-item text-info" href="{% url 'resumen_compra' %}"><i class="fas fa-eye"></i> Ver Compras</a></li>
+                </ul>
             </div>
         </div>
 
@@ -86,23 +81,15 @@
                         <td>{{ proveedor.email_proveedor }}</td>
                         <td>
                             <div class="dropdown">
-                                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton{{ proveedor.id }}" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-bars"></i>
                                 </button>
-                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item text-warning" href="{% url 'proveedor_edit' proveedor.pk %}">
-                                        <i class="fas fa-edit"></i> Editar
-                                    </a>
-                                    <a class="dropdown-item text-danger" href="{% url 'proveedor_delete' proveedor.pk %}">
-                                        <i class="fas fa-trash-alt"></i> Eliminar
-                                    </a>
-                                    <a class="dropdown-item text-primary" href="{% url 'agregar_producto_proveedor' proveedor.id_proveedor %}">
-                                        <i class="fas fa-plus-circle"></i> Agregar Productos
-                                    </a>
-                                    <a class="dropdown-item text-success" href="{% url 'comprar_productos_proveedor' proveedor.id_proveedor %}">
-                                        <i class="fas fa-shopping-cart"></i> Comprar Productos
-                                    </a>
-                                </div>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ proveedor.id }}">
+                                    <li><a class="dropdown-item text-warning" href="{% url 'proveedor_edit' proveedor.pk %}"><i class="fas fa-edit"></i> Editar</a></li>
+                                    <li><a class="dropdown-item text-danger" href="{% url 'proveedor_delete' proveedor.pk %}"><i class="fas fa-trash-alt"></i> Eliminar</a></li>
+                                    <li><a class="dropdown-item text-primary" href="{% url 'agregar_producto_proveedor' proveedor.id_proveedor %}"><i class="fas fa-plus-circle"></i> Agregar Productos</a></li>
+                                    <li><a class="dropdown-item text-success" href="{% url 'comprar_productos_proveedor' proveedor.id_proveedor %}"><i class="fas fa-shopping-cart"></i> Comprar Productos</a></li>
+                                </ul>
                             </div>
                         </td>
                     </tr>
@@ -112,25 +99,8 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                var messageContainer = document.getElementById('message-container');
-                if (messageContainer) {
-                    messageContainer.style.display = 'none';
-                }
-            }, 5000);
-        });
-    </script>
-    <script src="{% static 'js/proveedor.js' %}"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUjMYm_HVdhncKSb4nvc8e4Br3-pbfbfc&callback=initAutocomplete&libraries=places" async defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://kit.fontawesome.com/32b703ccc5.js" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
