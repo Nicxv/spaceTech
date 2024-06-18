@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from spacetech import settings
 from . import views
 from django.urls import path
-from .views import enviar_publicidad
+from .views import CustomPasswordResetConfirmView, enviar_publicidad
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.urls import path
@@ -45,8 +45,10 @@ urlpatterns = [
 
     path('recuperar_contraseña/', auth_views.PasswordResetView.as_view(template_name='recuperar_contraseña.html'), name='password_reset'),
     path('recuperar_contraseña/enviado/', auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'), name='password_reset_done'),
-    path('recuperar_contraseña/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'), name='password_reset_confirm'),
+    path('recuperar_contraseña/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('recuperar_contraseña/completo/', auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), name='password_reset_complete'),
+   
+   
     path('comprar/', views.comprar, name='comprar'),
 
 

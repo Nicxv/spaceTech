@@ -1253,3 +1253,7 @@ def enviar_pdf(request):
 
 
 
+from django.contrib.auth.views import PasswordResetConfirmView
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = 'password_reset_confirm.html'
