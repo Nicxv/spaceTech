@@ -675,12 +675,109 @@ def resumen_compra(request):
         'total': total
     })
 
+from fpdf import FPDF
 from io import BytesIO
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import ProveedorCarritoItem, Proveedor, ProveedorCarrito
+from django.core.mail import EmailMessage
+from django.conf import settings
+
+def format_price(value):
+    try:
+        value = float(value)
+        return "${:,.0f}".format(value).replace(',', '.')
+    except (ValueError, TypeError):
+        return value
+
+class PDF(FPDF):
+    def header(self):
+        self.image('static/img/your_logo.png', 10, 8, 33)  # Ajusta la ruta a tu imagen
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, 'Resumen de la Compra', 0, 1, 'C')
+        self.ln(10)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Arial', 'I', 8)
+        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
+
+    def chapter_title(self, title):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, title, 0, 1, 'L')
+        self.ln(5)
+
+    def chapter_body(self, body):
+        self.set_font('Arial', '', 12)
+        self.multi_cell(0, 10, body)
+        self.ln()
+
+    def add_table(self, items):
+        self.set_font('Arial', 'B', 12)
+        self.cell(60, 10, 'Producto', 1)
+        self.cell(30, 10, 'Precio', 1)
+        self.cell(30, 10, 'Cantidad', 1)
+        self.cell(40, 10, 'Subtotal', 1)
+        self.ln()
+
+        self.set_font('Arial', '', 12)
+        for item in items:
+            self.cell(60, 10, item.producto.nombre_producto, 1)
+            self.cell(30, 10, format_price(item.producto.precio_costo), 1)
+            self.cell(30, 10, str(item.cantidad), 1)
+            self.cell(40, 10, format_price(item.cantidad * item.producto.precio_costo), 1)
+            self.ln()
+
+    def add_total(self, subtotal):
+        self.ln(10)
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, f"Subtotal: {format_price(subtotal)}", 0, 1, 'R')
+
+@login_required
+def descargar_pdf(request, proveedor_id):
+    proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
+    carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
+    items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
+
+    # Calcular subtotal
+    subtotal = sum(item.cantidad * item.producto.precio_costo for item in items)
+
+    # Crear el PDF
+    pdf = PDF()
+    pdf.add_page()
+
+    # Añadir contenido al PDF
+    pdf.chapter_title("Detalles del Proveedor")
+    pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
+
+    pdf.chapter_title("Detalles de los Productos")
+    pdf.add_table(items)
+
+    pdf.add_total(subtotal)
+
+    # Guardar el PDF en un BytesIO buffer
+    pdf_buffer = BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+    
+    # Crear la respuesta HTTP con el PDF
+    response = HttpResponse(pdf_buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="resumen_compra_proveedor_{proveedor_id}.pdf"'
+    
+    return response
+
+
+
+
+from django.core.mail import EmailMessage
+from django.conf import settings
+from io import BytesIO
 from fpdf import FPDF
 from .models import ProveedorCarritoItem, Proveedor, ProveedorCarrito
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 from fpdf import FPDF
 
@@ -707,91 +804,32 @@ class PDF(FPDF):
 
     def add_table(self, items):
         self.set_font('Arial', 'B', 12)
-        self.cell(40, 10, 'Producto', 1)
+        self.cell(60, 10, 'Producto', 1)
         self.cell(30, 10, 'Precio', 1)
         self.cell(30, 10, 'Cantidad', 1)
-        self.cell(30, 10, 'Subtotal', 1)
+        self.cell(40, 10, 'Subtotal', 1)
         self.ln()
 
         self.set_font('Arial', '', 12)
         for item in items:
-            self.cell(40, 10, item.producto.nombre_producto, 1)
+            self.cell(60, 10, item.producto.nombre_producto, 1)
             self.cell(30, 10, f"${item.producto.precio_costo:,.2f}", 1)
             self.cell(30, 10, str(item.cantidad), 1)
-            self.cell(30, 10, f"${item.cantidad * item.producto.precio_costo:,.2f}", 1)
+            self.cell(40, 10, f"${item.cantidad * item.producto.precio_costo:,.2f}", 1)
             self.ln()
 
     def add_total(self, subtotal):
         self.ln(10)
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, f"Subtotal: ${subtotal:,.2f}", 0, 1, 'R')
-@login_required
-def descargar_pdf(request, proveedor_id):
-    proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
-    carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
-    items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
-
-    # Calcular subtotal
-    subtotal = sum(item.cantidad * item.producto.precio_costo for item in items)
-
-    # Crear el PDF
-    pdf = PDF()
-    pdf.add_page()
-
-    # Añadir contenido al PDF
-    pdf.chapter_title("Detalles del Proveedor")
-    pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
-
-    pdf.chapter_title("Detalles de los Productos")
-    for item in items:
-        pdf.chapter_body(f"Producto: {item.producto.nombre_producto}")
-        pdf.chapter_body(f"Precio: ${item.producto.precio_costo}")
-        pdf.chapter_body(f"Cantidad: {item.cantidad}")
-        pdf.chapter_body(f"Subtotal: ${item.cantidad * item.producto.precio_costo}")
-        pdf.ln(5)
-    
-    pdf.chapter_body(f"Subtotal para {proveedor.nombre_empresa}: ${subtotal}")
-
-    # Guardar el PDF en un BytesIO buffer
-    pdf_buffer = BytesIO()
-    pdf.output(pdf_buffer)
-    pdf_buffer.seek(0)
-    
-    # Crear la respuesta HTTP con el PDF
-    response = HttpResponse(pdf_buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="resumen_compra_proveedor_{proveedor_id}.pdf"'
-    
-    return response
 
 from django.core.mail import EmailMessage
 from django.conf import settings
 from io import BytesIO
-from fpdf import FPDF
 from .models import ProveedorCarritoItem, Proveedor, ProveedorCarrito
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-
-class PDF(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 10, 'Resumen de la Compra', 0, 1, 'C')
-        self.ln(10)
-
-    def footer(self):
-        self.set_y(-15)
-        self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
-
-    def chapter_title(self, title):
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 10, title, 0, 1, 'L')
-        self.ln(5)
-
-    def chapter_body(self, body):
-        self.set_font('Arial', '', 12)
-        self.multi_cell(0, 10, body)
-        self.ln()
 
 @login_required
 def aceptar_producto(request, proveedor_id):
@@ -811,14 +849,9 @@ def aceptar_producto(request, proveedor_id):
     pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
 
     pdf.chapter_title("Detalles de los Productos")
-    for item in items:
-        pdf.chapter_body(f"Producto: {item.producto.nombre_producto}")
-        pdf.chapter_body(f"Precio: ${item.producto.precio_costo}")
-        pdf.chapter_body(f"Cantidad: {item.cantidad}")
-        pdf.chapter_body(f"Subtotal: ${item.cantidad * item.producto.precio_costo}")
-        pdf.ln(5)
-    
-    pdf.chapter_body(f"Subtotal para {proveedor.nombre_empresa}: ${subtotal}")
+    pdf.add_table(items)
+
+    pdf.add_total(subtotal)
 
     # Guardar el PDF en un BytesIO buffer
     pdf_buffer = BytesIO()
@@ -847,9 +880,13 @@ def aceptar_producto(request, proveedor_id):
     return redirect('resumen_compra')
 
 
-
 from django.views.decorators.http import require_POST
 
+
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 @login_required
 @require_POST
@@ -1213,3 +1250,6 @@ def enviar_pdf(request):
         messages.error(request, f'Error al enviar el email: {e}')
     
     return redirect('pago_exitoso')
+
+
+

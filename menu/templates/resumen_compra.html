@@ -40,7 +40,8 @@
                     <td>
                         {% if forloop.first %}
                         <a href="{% url 'aceptar_producto' proveedor.id_proveedor %}" class="btn btn-success"><i class="fa-solid fa-check"></i></a>
-                        <a href="#" class="btn btn-danger btn-delete" data-id="{{ proveedor.id_proveedor }}"><i class="fa-solid fa-xmark"></i></a>
+                        <button class="btn btn-danger btn-delete" data-id="{{ item.id }}"><i class="fa-solid fa-xmark"></i></button>
+                        
                         {% endif %}
                     </td>
                 </tr>

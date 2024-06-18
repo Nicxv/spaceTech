@@ -16,4 +16,4 @@ def multiply(value, arg):
 
 @register.filter(name='get_value')
 def get_value(dictionary, key):
-    return dictionary.get(key, 0)   
+    return dictionary.get(key, 0)
