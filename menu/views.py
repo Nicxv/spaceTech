@@ -1257,3 +1257,9 @@ from django.contrib.auth.views import PasswordResetConfirmView
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'password_reset_confirm.html'
+
+
+def gestion_envios(request):
+    return render(request, 'gestion_envios.html')
+
+ 
