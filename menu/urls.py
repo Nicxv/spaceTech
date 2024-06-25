@@ -97,8 +97,8 @@ urlpatterns = [
     path('generar_pdf/', views.generar_pdf, name='generar_pdf'),
     path('enviar_pdf/', views.enviar_pdf, name='enviar_pdf'),
 
-    path('gestion_ventas', views.gestion_ventas, name='gestion_ventas'),
-    
+    path('gestion_ventas/', views.gestion_ventas, name='gestion_ventas'),
+path('detalle_venta_ajax/<int:venta_id>/', views.detalle_venta_ajax, name='detalle_venta_ajax'),    
 
 
 ]

@@ -1258,15 +1258,36 @@ from django.contrib.auth.views import PasswordResetConfirmView
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'password_reset_confirm.html'
 
-
+from django.db.models import Q
 def gestion_ventas(request):
-    # Obtener todas las ventas registradas
-    ventas = Venta.objects.all()
+    query = request.GET.get('q')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
 
-    # Pasar las ventas al template para mostrar en la tabla
-    context = {
-        'ventas': ventas
-    }
+    ventas = Venta.objects.select_related('usuario').all()
+
+    if query:
+        ventas = ventas.filter(Q(usuario__nombre_usuario__icontains=query) | Q(id_boleta__icontains=query))
+
+    if date_from:
+        ventas = ventas.filter(fecha__gte=date_from)
+
+    if date_to:
+        ventas = ventas.filter(fecha__lte=date_to)
+
+    context = {'ventas': ventas}
     return render(request, 'gestion_ventas.html', context)
+
+def detalle_venta_ajax(request, venta_id):
+    venta = get_object_or_404(Venta, id=venta_id)
+    detalles = DetalleVenta.objects.filter(venta=venta)
+    html = render_to_string('detalle_venta_ajax.html', {'venta': venta, 'detalles': detalles})
+    return HttpResponse(html)
+
+def detalle_venta_ajax(request, venta_id):
+    venta = get_object_or_404(Venta, id=venta_id)
+    detalles = DetalleVenta.objects.filter(venta=venta)
+    html = render_to_string('detalle_venta_ajax.html', {'venta': venta, 'detalles': detalles})
+    return HttpResponse(html)
 
  

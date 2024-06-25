@@ -22,7 +22,7 @@
         }
     </style>
 </head>
-<body>
+<body style="background-color: rgb(238, 238, 238);">
 
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
@@ -51,8 +51,7 @@
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="{% url 'listaP' %}">Productos</a></li>
                         <li><a class="dropdown-item" href="{% url 'listaU' %}">Usuarios</a></li>
-                        <li><a class="dropdown-item" href="#">Gestion de envios</a></li>
-                        <li><a class="dropdown-item" href="#">Pedidos</a></li>
+                        <li><a class="dropdown-item" href="{% url 'gestion_ventas'%}">Registro de ventas</a></li>
                         <li><a class="dropdown-item" href="#">Reportes</a></li>
                         <li><a class="dropdown-item" href="{% url 'proveedor_list' %}">Proveedor</a></li> <!-- Nuevo botón de Proveedor -->
                     </ul>
