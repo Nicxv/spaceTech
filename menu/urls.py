@@ -97,7 +97,7 @@ urlpatterns = [
     path('generar_pdf/', views.generar_pdf, name='generar_pdf'),
     path('enviar_pdf/', views.enviar_pdf, name='enviar_pdf'),
 
-    path('gestion_envios', views.gestion_envios, name='gestion_envios'),
+    path('gestion_ventas', views.gestion_ventas, name='gestion_ventas'),
     
 
 

@@ -1259,7 +1259,14 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'password_reset_confirm.html'
 
 
-def gestion_envios(request):
-    return render(request, 'gestion_envios.html')
+def gestion_ventas(request):
+    # Obtener todas las ventas registradas
+    ventas = Venta.objects.all()
+
+    # Pasar las ventas al template para mostrar en la tabla
+    context = {
+        'ventas': ventas
+    }
+    return render(request, 'gestion_ventas.html', context)
 
  
