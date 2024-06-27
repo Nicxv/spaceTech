@@ -161,3 +161,4 @@ class ProveedorCarritoItem(models.Model):
     cantidad_llegada=  models.IntegerField(default=0)
     agregado_en = models.DateTimeField(default=timezone.now)
     aceptado = models.BooleanField(default=False)
+    en_resumen = models.BooleanField(default=True)  # Controla visibilidad en el resumen de compra

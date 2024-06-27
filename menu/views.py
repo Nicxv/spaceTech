@@ -835,25 +835,21 @@ def aceptar_producto(request, proveedor_id):
     proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
     carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
     items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
-
-    # Calcular el subtotal para el PDF
-    subtotal = sum(item.cantidad * item.producto.precio_costo for item in items)
-
-    # Generar y configurar PDF
+    
+    # Proceso de creación del PDF
     pdf = PDF()
     pdf.add_page()
     pdf.chapter_title("Detalles del Proveedor")
     pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
-    pdf.chapter_title("Detalles de los Productos")
     pdf.add_table(items)
+    subtotal = sum(item.cantidad * item.producto.precio_costo for item in items)
     pdf.add_total(subtotal)
 
-    # Preparar PDF para envío
     pdf_buffer = BytesIO()
     pdf_buffer.write(pdf.output(dest='S').encode('latin1'))
     pdf_buffer.seek(0)
 
-    # Enviar email con el PDF adjunto
+    # Envío del email con el PDF adjunto
     email = EmailMessage(
         'Resumen de la Compra',
         'Adjunto encontrará el resumen de la compra.',
@@ -861,19 +857,18 @@ def aceptar_producto(request, proveedor_id):
         [proveedor.email_proveedor],
     )
     email.attach(f'resumen_compra_proveedor_{proveedor_id}.pdf', pdf_buffer.getvalue(), 'application/pdf')
+    email.send()
 
-    try:
-        email.send()
-        messages.success(request, 'Resumen de compra enviado por email exitosamente.')
-        # Marcar ítems como enviados y eliminar del carrito
-        for item in items:
-            item.aceptado = True
-            item.save()
-            item.delete()  # Eliminar el ítem del carrito actual
-    except Exception as e:
-        messages.error(request, f'Error al enviar el email: {e}')
+    # Actualiza la visibilidad en el resumen de compra
+    for item in items:
+        item.aceptado = True
+        item.en_resumen = False  # Cambio aquí para no eliminar, solo ocultar del resumen
+        item.save()
 
+    messages.success(request, 'Resumen de compra enviado por email exitosamente.')
     return redirect('resumen_compra')
+
+
 
 
 from django.views.decorators.http import require_POST
@@ -1312,7 +1307,8 @@ from .models import ProveedorCarritoItem, Proveedor
 def recepcion_proveedor(request):
     carrito_items = ProveedorCarritoItem.objects.filter(
         carrito__usuario=request.user,
-        aceptado=True  # Solo muestra los productos que han sido aceptados
+        aceptado=True
     ).select_related('producto', 'producto__proveedor')
 
     return render(request, 'recepcion_proveedor.html', {'carrito_items': carrito_items})
+
