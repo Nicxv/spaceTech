@@ -733,40 +733,30 @@ class PDF(FPDF):
         self.ln(10)
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, f"Subtotal: {format_price(subtotal)}", 0, 1, 'R')
-
 @login_required
 def descargar_pdf(request, proveedor_id):
-    proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
+    proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)  # Usar id_proveedor en lugar de id
     carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
     items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
 
-    # Calcular subtotal
     subtotal = sum(item.cantidad * item.producto.precio_costo for item in items)
 
-    # Crear el PDF
     pdf = PDF()
     pdf.add_page()
-
-    # Añadir contenido al PDF
     pdf.chapter_title("Detalles del Proveedor")
     pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
-
     pdf.chapter_title("Detalles de los Productos")
     pdf.add_table(items)
-
     pdf.add_total(subtotal)
 
-    # Guardar el PDF en un BytesIO buffer
     pdf_buffer = BytesIO()
-    pdf.output(pdf_buffer)
-    pdf_buffer.seek(0)
-    
-    # Crear la respuesta HTTP con el PDF
+    pdf_buffer.write(pdf.output(dest='S').encode('latin1'))  # Generar el PDF y escribirlo en memoria como bytes
+    pdf_buffer.seek(0)  # Reposicionar al inicio del buffer
+
     response = HttpResponse(pdf_buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="resumen_compra_proveedor_{proveedor_id}.pdf"'
-    
-    return response
 
+    return response
 
 
 
@@ -831,34 +821,35 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
+from io import BytesIO
+from django.core.mail import EmailMessage
+from django.conf import settings
+from fpdf import FPDF
+from .models import ProveedorCarritoItem, Proveedor, ProveedorCarrito
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+
 @login_required
 def aceptar_producto(request, proveedor_id):
     proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
     carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
     items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
 
-    # Calcular subtotal
     subtotal = sum(item.cantidad * item.producto.precio_costo for item in items)
 
-    # Crear el PDF
     pdf = PDF()
     pdf.add_page()
-
-    # Añadir contenido al PDF
     pdf.chapter_title("Detalles del Proveedor")
     pdf.chapter_body(f"Nombre de la Empresa: {proveedor.nombre_empresa}")
-
     pdf.chapter_title("Detalles de los Productos")
     pdf.add_table(items)
-
     pdf.add_total(subtotal)
 
-    # Guardar el PDF en un BytesIO buffer
     pdf_buffer = BytesIO()
-    pdf.output(pdf_buffer)
+    pdf_buffer.write(pdf.output(dest='S').encode('latin1'))
     pdf_buffer.seek(0)
-    
-    # Crear el correo electrónico
+
     email = EmailMessage(
         'Resumen de la Compra',
         'Adjunto encontrará el resumen de la compra.',
@@ -866,18 +857,17 @@ def aceptar_producto(request, proveedor_id):
         [proveedor.email_proveedor],
     )
     email.attach(f'resumen_compra_proveedor_{proveedor_id}.pdf', pdf_buffer.getvalue(), 'application/pdf')
-    
-    # Enviar el correo
+
     try:
         email.send()
         messages.success(request, 'Resumen de compra enviado por email exitosamente.')
     except Exception as e:
         messages.error(request, f'Error al enviar el email: {e}')
-    
-    # Lógica para aceptar el producto (puede ser guardar en otra tabla, generar una orden, etc.)
+
     items.delete()  # Aquí solo lo eliminamos del carrito como ejemplo
     
     return redirect('resumen_compra')
+
 
 
 from django.views.decorators.http import require_POST
