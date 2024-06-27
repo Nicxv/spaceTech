@@ -8,6 +8,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.urls import path
 from .views import proveedor_list, proveedor_add, proveedor_edit, proveedor_delete, iniciar_pago, confirmar_pago
+from .views import actualizar_cantidad_llegada, recepcion_proveedor
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -98,9 +99,10 @@ urlpatterns = [
     path('enviar_pdf/', views.enviar_pdf, name='enviar_pdf'),
 
     path('gestion_ventas/', views.gestion_ventas, name='gestion_ventas'),
-path('detalle_venta_ajax/<int:venta_id>/', views.detalle_venta_ajax, name='detalle_venta_ajax'),    
-
-
+    path('detalle_venta_ajax/<int:venta_id>/', views.detalle_venta_ajax, name='detalle_venta_ajax'),    
+    
+    path('recepcion_proveedor/', recepcion_proveedor, name='recepcion_proveedor'),
+    path('actualizar_cantidad_llegada/', actualizar_cantidad_llegada, name='actualizar_cantidad_llegada'),
 ]
 
 # Clave de google maps api

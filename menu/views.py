@@ -836,8 +836,10 @@ def aceptar_producto(request, proveedor_id):
     carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
     items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
 
+    # Calcular el subtotal para el PDF
     subtotal = sum(item.cantidad * item.producto.precio_costo for item in items)
 
+    # Generar y configurar PDF
     pdf = PDF()
     pdf.add_page()
     pdf.chapter_title("Detalles del Proveedor")
@@ -846,10 +848,12 @@ def aceptar_producto(request, proveedor_id):
     pdf.add_table(items)
     pdf.add_total(subtotal)
 
+    # Preparar PDF para envío
     pdf_buffer = BytesIO()
     pdf_buffer.write(pdf.output(dest='S').encode('latin1'))
     pdf_buffer.seek(0)
 
+    # Enviar email con el PDF adjunto
     email = EmailMessage(
         'Resumen de la Compra',
         'Adjunto encontrará el resumen de la compra.',
@@ -861,13 +865,15 @@ def aceptar_producto(request, proveedor_id):
     try:
         email.send()
         messages.success(request, 'Resumen de compra enviado por email exitosamente.')
+        # Marcar ítems como enviados y eliminar del carrito
+        for item in items:
+            item.aceptado = True
+            item.save()
+            item.delete()  # Eliminar el ítem del carrito actual
     except Exception as e:
         messages.error(request, f'Error al enviar el email: {e}')
 
-    items.delete()  # Aquí solo lo eliminamos del carrito como ejemplo
-    
     return redirect('resumen_compra')
-
 
 
 from django.views.decorators.http import require_POST
@@ -1280,4 +1286,33 @@ def detalle_venta_ajax(request, venta_id):
     html = render_to_string('detalle_venta_ajax.html', {'venta': venta, 'detalles': detalles})
     return HttpResponse(html)
 
- 
+from django.shortcuts import redirect, render, get_object_or_404
+from django.views.decorators.http import require_POST
+from .models import ProveedorCarritoItem
+from django.contrib.auth.decorators import login_required
+
+@login_required
+@require_POST
+def actualizar_cantidad_llegada(request):
+    for key, value in request.POST.items():
+        if key.startswith('cantidad_llegada_'):
+            item_id = key.split('_')[-1]
+            cantidad_llegada = int(value)
+            item = get_object_or_404(ProveedorCarritoItem, id=item_id)
+            item.cantidad_llegada = cantidad_llegada
+            item.save()
+    return redirect('recepcion_proveedor')
+
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from .models import ProveedorCarritoItem, Proveedor
+
+@login_required
+def recepcion_proveedor(request):
+    carrito_items = ProveedorCarritoItem.objects.filter(
+        carrito__usuario=request.user,
+        aceptado=True  # Solo muestra los productos que han sido aceptados
+    ).select_related('producto', 'producto__proveedor')
+
+    return render(request, 'recepcion_proveedor.html', {'carrito_items': carrito_items})

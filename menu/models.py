@@ -158,4 +158,6 @@ class ProveedorCarritoItem(models.Model):
     carrito = models.ForeignKey(ProveedorCarrito, on_delete=models.CASCADE)
     producto = models.ForeignKey(ProductosProveedor, on_delete=models.CASCADE)
     cantidad = models.IntegerField(default=1)
+    cantidad_llegada=  models.IntegerField(default=0)
     agregado_en = models.DateTimeField(default=timezone.now)
+    aceptado = models.BooleanField(default=False)
