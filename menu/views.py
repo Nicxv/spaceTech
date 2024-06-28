@@ -833,6 +833,7 @@ def aceptar_producto(request, proveedor_id):
     carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
     items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
 
+    # Generar PDF
     pdf = PDF()
     pdf.add_page()
     pdf.chapter_title("Detalles del Proveedor")
@@ -845,6 +846,7 @@ def aceptar_producto(request, proveedor_id):
     pdf_buffer.write(pdf.output(dest='S').encode('latin1'))
     pdf_buffer.seek(0)
 
+    # Enviar email con el PDF adjunto
     email = EmailMessage(
         'Resumen de la Compra',
         'Adjunto encontrará el resumen de la compra.',
@@ -854,13 +856,23 @@ def aceptar_producto(request, proveedor_id):
     email.attach(f'resumen_compra_proveedor_{proveedor_id}.pdf', pdf_buffer.getvalue(), 'application/pdf')
     email.send()
 
-    # Crear registros de recepción para cada producto aceptado
+    # Crear registros en RecepcionProducto y actualizar visibilidad en ProveedorCarritoItem
     for item in items:
-        RecepcionProducto.objects.create(carrito_item=item, cantidad_llegada=0, confirmado=False, en_resumen=True)
-        item.delete()  # Elimina el ítem del carrito para que no aparezca en el resumen de compra
+        RecepcionProducto.objects.update_or_create(
+            carrito_item=item,
+            defaults={
+                'cantidad_llegada': 0,  # Puedes ajustar según la lógica de negocio
+                'confirmado': False,  # Suponiendo que inicialmente no está confirmado
+                'en_resumen': True   # Si debe aparecer en el resumen
+            }
+        )
+        item.en_resumen = False  # Oculta el ítem del resumen de compra sin borrarlo
+        item.save()
 
-    messages.success(request, 'Producto aceptado y email enviado.')
+    messages.success(request, 'Resumen de compra enviado por email exitosamente.')
     return redirect('proveedor_list')
+
+
 
 
 
@@ -1302,7 +1314,10 @@ from .models import ProveedorCarritoItem, Proveedor
 def recepcion_proveedor(request):
     recepciones = RecepcionProducto.objects.filter(
         carrito_item__carrito__usuario=request.user,
-        confirmado=False  # Asumiendo que 'confirmado' es el nuevo campo que gestiona si está aceptado o no
+        confirmado=False
     ).select_related('carrito_item__producto', 'carrito_item__producto__proveedor')
 
+    print(recepciones)  # Ver los datos recuperados
+
     return render(request, 'recepcion_proveedor.html', {'recepciones': recepciones})
+
