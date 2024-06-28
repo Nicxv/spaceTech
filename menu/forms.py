@@ -63,11 +63,7 @@ from django import forms
 
 
 from django import forms
-from .models import Articulos, Imagen
-from django.forms.models import inlineformset_factory
-
-from django import forms
-from .models import Articulos, Imagen
+from .models import Articulos
 from django.forms.models import inlineformset_factory
 
 class ArticulosForm(forms.ModelForm):
@@ -75,7 +71,7 @@ class ArticulosForm(forms.ModelForm):
         model = Articulos
         fields = ['nombre', 'descripcion', 'precio', 'stock', 'foto', 'marca', 'precio_oferta', 'descuento']
 
-ImagenFormSet = inlineformset_factory(Articulos, Imagen, fields=['imagen'], extra=1, can_delete=True)
+
 
         
 class LoginForm(forms.Form):

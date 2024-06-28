@@ -129,25 +129,23 @@ def editar_usuario(request, usuario_id):
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from .models import Articulos, Comuna, Imagen
-from .forms import ArticulosForm, ImagenFormSet
+from .models import Articulos, Comuna
+from .forms import ArticulosForm
 
 def modificarP(request, producto_id):
     producto = get_object_or_404(Articulos, id=producto_id)
     if request.method == 'POST':
         form = ArticulosForm(request.POST, request.FILES, instance=producto)
-        formset = ImagenFormSet(request.POST, request.FILES, instance=producto)
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             form.save()
-            formset.save()
             messages.success(request, 'Producto modificado con éxito')
             return redirect('listaP')
         else:
-            print("Formulario no válido:", form.errors, formset.errors)
+            print("Formulario no válido:", form.errors)
     else:
         form = ArticulosForm(instance=producto)
-        formset = ImagenFormSet(instance=producto)
-    return render(request, 'modificarP.html', {'form': form, 'formset': formset, 'producto': producto})
+    
+    return render(request, 'modificarP.html', {'form': form, 'producto': producto})
 #Plantillas de menu
 
 def menu(request):
@@ -171,35 +169,30 @@ def formulario(request):
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from .models import Articulos, Imagen
-from .forms import ArticulosForm, ImagenFormSet
+from .models import Articulos
+from .forms import ArticulosForm
 
 def agregar_producto(request):
     if request.method == 'POST':
         form = ArticulosForm(request.POST, request.FILES)
-        formset = ImagenFormSet(request.POST, request.FILES)
-        if form.is_valid() and formset.is_valid():
-            articulo = form.save()
-            for form in formset:
-                imagen = form.save(commit=False)
-                imagen.articulo = articulo
-                imagen.save()
+        if form.is_valid():
+            form.save()
             return redirect('/')
         else:
-            print("Formulario no válido:", form.errors, formset.errors)
+            print("Formulario no válido:", form.errors)
     else:
         form = ArticulosForm()
-        formset = ImagenFormSet()
-    return render(request, 'agregarP.html', {'form': form, 'formset': formset})
+    return render(request, 'agregarP.html', {'form': form})
+
 
 def detalle_producto(request, producto_id):
     producto = get_object_or_404(Articulos, id=producto_id)
-    imagenes = Imagen.objects.filter(articulo=producto)
+    
     carrito_items_count = 0
     if request.user.is_authenticated:
         carrito, created = Carrito.objects.get_or_create(usuario=request.user)
         carrito_items_count = CarritoItem.objects.filter(carrito=carrito).count()
-    return render(request, 'detalle_producto.html', {'producto': producto, 'imagenes': imagenes, 'carrito_items_count': carrito_items_count})
+    return render(request, 'detalle_producto.html', {'producto': producto,  'carrito_items_count': carrito_items_count})
 
 def eliminar_producto(request, producto_id):
     producto = get_object_or_404(Articulos, id=producto_id)

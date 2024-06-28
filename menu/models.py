@@ -95,14 +95,15 @@ class DetalleVenta(models.Model):
 
 
 
-
-
 class Imagen(models.Model):
-    articulo = models.ForeignKey(Articulos, related_name='imagenes', on_delete=models.CASCADE)
+    
     imagen = models.ImageField(upload_to='static/img/')
 
     def __str__(self):
         return f"Imagen de {self.articulo.nombre}"
+    
+
+    
 class Proveedor(models.Model):
     id_proveedor = models.AutoField(primary_key=True, editable=False)
     rut_empresa = models.CharField(max_length=13, verbose_name='RUT de la Empresa')
