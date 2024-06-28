@@ -162,7 +162,14 @@ class ProveedorCarritoItem(models.Model):
     carrito = models.ForeignKey(ProveedorCarrito, on_delete=models.CASCADE)
     producto = models.ForeignKey(ProductosProveedor, on_delete=models.CASCADE)
     cantidad = models.IntegerField(default=1)
-    cantidad_llegada=  models.IntegerField(default=0)
-    agregado_en = models.DateTimeField(default=timezone.now)
-    aceptado = models.BooleanField(default=False)
-    en_resumen = models.BooleanField(default=True)  # Controla visibilidad en el resumen de compra
+
+
+class RecepcionProducto(models.Model):
+    carrito_item = models.ForeignKey(ProveedorCarritoItem, on_delete=models.CASCADE, related_name='recepciones')
+    cantidad_llegada = models.IntegerField(default=0)
+    fecha_agregado = models.DateTimeField(default=timezone.now)
+    confirmado = models.BooleanField(default=False)
+    en_resumen = models.BooleanField(default=True)  # Visible en resumen de compra
+
+    def __str__(self):
+        return f"{self.carrito_item.producto.nombre_producto} - Recepción"

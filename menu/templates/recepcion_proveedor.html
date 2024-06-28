@@ -1,5 +1,4 @@
-{% load custom_filters %}  <!-- Cargar los filtros personalizados al inicio del archivo HTML -->
-
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,17 +24,15 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in carrito_items %}
+                {% for item in recepciones %}
                 <tr>
-                    <td>{{ item.producto.proveedor.nombre_empresa }}</td>
-                    <td>{{ item.producto.nombre_producto }}</td>
-                    <td>{{ item.producto.precio_costo|format_price }}</td>
-                    <td>{{ item.cantidad }}</td>
-                    <td><input type="number" name="cantidad_llegada_{{ item.id }}" value="{{ item.cantidad_llegada }}" min="0" max="{{ item.cantidad }}"></td>
-                    <td>{{ item.cantidad|multiply:item.producto.precio_costo|format_price }}</td>
-                    <td>
-                        <img src="{{ item.producto.foto_producto.url }}" alt="{{ item.producto.nombre_producto }}" width="100">
-                    </td>
+                    <td>{{ item.carrito_item.producto.proveedor.nombre_empresa }}</td>
+                    <td>{{ item.carrito_item.producto.nombre_producto }}</td>
+                    <td>{{ item.carrito_item.producto.precio_costo|format_price }}</td>
+                    <td>{{ item.carrito_item.cantidad }}</td>
+                    <td><input type="number" name="cantidad_llegada_{{ item.id }}" value="{{ item.cantidad_llegada }}" min="0" max="{{ item.carrito_item.cantidad }}"></td>
+                    <td>{{ item.carrito_item.cantidad|multiply:item.carrito_item.producto.precio_costo|format_price }}</td>
+                    <td><img src="{{ item.carrito_item.producto.foto_producto.url }}" alt="{{ item.carrito_item.producto.nombre_producto }}" width="100"></td>
                     <td>
                         <button type="submit" class="btn btn-primary">Actualizar</button>
                     </td>

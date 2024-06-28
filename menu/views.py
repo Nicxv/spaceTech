@@ -129,7 +129,7 @@ def editar_usuario(request, usuario_id):
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from .models import Articulos, Comuna
+from .models import Articulos, Comuna, RecepcionProducto
 from .forms import ArticulosForm
 
 def modificarP(request, producto_id):
@@ -832,8 +832,7 @@ def aceptar_producto(request, proveedor_id):
     proveedor = get_object_or_404(Proveedor, id_proveedor=proveedor_id)
     carrito = get_object_or_404(ProveedorCarrito, usuario=request.user)
     items = ProveedorCarritoItem.objects.filter(carrito=carrito, producto__proveedor=proveedor)
-    
-    # Proceso de creación del PDF
+
     pdf = PDF()
     pdf.add_page()
     pdf.chapter_title("Detalles del Proveedor")
@@ -846,7 +845,6 @@ def aceptar_producto(request, proveedor_id):
     pdf_buffer.write(pdf.output(dest='S').encode('latin1'))
     pdf_buffer.seek(0)
 
-    # Envío del email con el PDF adjunto
     email = EmailMessage(
         'Resumen de la Compra',
         'Adjunto encontrará el resumen de la compra.',
@@ -856,14 +854,14 @@ def aceptar_producto(request, proveedor_id):
     email.attach(f'resumen_compra_proveedor_{proveedor_id}.pdf', pdf_buffer.getvalue(), 'application/pdf')
     email.send()
 
-    # Actualiza la visibilidad en el resumen de compra
+    # Crear registros de recepción para cada producto aceptado
     for item in items:
-        item.aceptado = True
-        item.en_resumen = False  # Cambio aquí para no eliminar, solo ocultar del resumen
-        item.save()
+        RecepcionProducto.objects.create(carrito_item=item, cantidad_llegada=0, confirmado=False, en_resumen=True)
+        item.delete()  # Elimina el ítem del carrito para que no aparezca en el resumen de compra
 
-    messages.success(request, 'Resumen de compra enviado por email exitosamente.')
-    return redirect('resumen_compra')
+    messages.success(request, 'Producto aceptado y email enviado.')
+    return redirect('proveedor_list')
+
 
 
 
@@ -1302,10 +1300,9 @@ from .models import ProveedorCarritoItem, Proveedor
 
 @login_required
 def recepcion_proveedor(request):
-    carrito_items = ProveedorCarritoItem.objects.filter(
-        carrito__usuario=request.user,
-        aceptado=True
-    ).select_related('producto', 'producto__proveedor')
+    recepciones = RecepcionProducto.objects.filter(
+        carrito_item__carrito__usuario=request.user,
+        confirmado=False  # Asumiendo que 'confirmado' es el nuevo campo que gestiona si está aceptado o no
+    ).select_related('carrito_item__producto', 'carrito_item__producto__proveedor')
 
-    return render(request, 'recepcion_proveedor.html', {'carrito_items': carrito_items})
-
+    return render(request, 'recepcion_proveedor.html', {'recepciones': recepciones})
