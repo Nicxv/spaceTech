@@ -116,7 +116,11 @@ def editar_usuario(request, usuario_id):
     if request.method == 'POST':
         form = Usuario2Form(request.POST, instance=usuario)
         if form.is_valid():
-            form.save()
+            usuario = form.save()
+            grupo = form.cleaned_data.get('grupo')
+            if grupo:
+                usuario.groups.clear()
+                usuario.groups.add(grupo)
             messages.success(request, 'Usuario modificado con éxito')
             return redirect('listaU')
     else:

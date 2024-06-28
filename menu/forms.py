@@ -1,5 +1,7 @@
 from django import forms
 from . models import Articulos, Usuario
+from django.contrib.auth.models import Group
+
 
 class UsuarioForm(forms.ModelForm):
     class Meta:
@@ -16,6 +18,8 @@ class UsuarioForm(forms.ModelForm):
 ]
         
 class Usuario2Form(forms.ModelForm):
+    grupo = forms.ModelChoiceField(queryset=Group.objects.all(), required=False, label="Grupo")
+
     class Meta:
         model = Usuario
         fields = [
@@ -25,8 +29,7 @@ class Usuario2Form(forms.ModelForm):
             'email',
             'tfno',
             'direccion'
-]        
-
+        ]
         
 class ArticulosForm(forms.ModelForm):
     class Meta:

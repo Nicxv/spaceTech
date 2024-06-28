@@ -2,12 +2,13 @@ import uuid
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
+
 
 # Create your models here.
 
 
 class Usuario(models.Model):
-    
     nombre_usuario = models.CharField(max_length=30)
     nombre = models.CharField(max_length=30)
     apellido = models.CharField(max_length=30)
@@ -16,8 +17,10 @@ class Usuario(models.Model):
     clave = models.CharField(max_length=30)
     confirmar_clave = models.CharField(max_length=30)
     direccion = models.CharField(max_length=255, verbose_name="Dirección", null=True, blank=True)
+    groups = models.ManyToManyField(Group, related_name='usuarios', blank=True)
+
     def __str__(self):
-         return '  %s  %s ' %(self.nombre, self.apellido)
+        return '  %s  %s ' % (self.nombre, self.apellido)
 
     
 
