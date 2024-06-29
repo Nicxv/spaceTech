@@ -44,19 +44,23 @@
         </button>
     </div>
 
-    {% for producto in productos %}
-    <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-        <div class="card h-100">
-            <a href="{% url 'detalle_producto' producto.id %}">
-                <img class="card-img-top img-fluid" src="{{ producto.carrito_item.producto.foto_producto.url }}" alt="{{ producto.carrito_item.producto.nombre_producto }}">
-            </a>
-            <div class="card-body text-start">
-                <h5 class="card-title">{{ producto.carrito_item.producto.nombre_producto }}</h5>
-                <p class="card-text">{{ producto.precio_venta }}</p>
+    <div class="container mt-5">
+        <div class="row">
+            {% for producto in productos %}
+            <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+                <div class="card h-100">
+                    <a href="{% url 'detalle_producto' producto.id %}">
+                        <img class="card-img-top img-fluid" src="{{ producto.carrito_item.producto.foto_producto.url }}" alt="{{ producto.carrito_item.producto.nombre_producto }}">
+                    </a>
+                    <div class="card-body text-start">
+                        <h5 class="card-title">{{ producto.carrito_item.producto.nombre_producto }}</h5>
+                        <p class="card-text">{{ producto.precio_venta }}</p>
+                    </div>
+                </div>
             </div>
+            {% endfor %}
         </div>
     </div>
-    {% endfor %}
     
 
 
