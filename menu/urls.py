@@ -3,11 +3,11 @@ from django.conf.urls.static import static
 from spacetech import settings
 from . import views
 from django.urls import path
-from .views import CustomPasswordResetConfirmView, enviar_publicidad
+from .views import CustomPasswordResetConfirmView,  detalle_producto, enviar_publicidad
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from django.urls import path
-from .views import proveedor_list, proveedor_add, proveedor_edit, proveedor_delete, iniciar_pago, confirmar_pago
+from .views import proveedor_list, proveedor_add, proveedor_edit, proveedor_delete, iniciar_pago, confirmar_pago,buscar_marca
 from .views import actualizar_cantidad_llegada, recepcion_proveedor
 
 urlpatterns = [
@@ -33,7 +33,7 @@ urlpatterns = [
     path('listaP/eliminar/<int:producto_id>/', views.eliminar_producto, name='eliminar_producto'),
     path('listaP/modificar/<int:producto_id>/', views.modificarP, name='modificarP'),
     
-    path('producto/<int:producto_id>/', views.detalle_producto, name='detalle_producto'),
+    path('detalle_producto/<int:producto_id>/', detalle_producto, name='detalle_producto'),
 
 
 
@@ -103,6 +103,12 @@ urlpatterns = [
     
     path('recepcion_proveedor/', recepcion_proveedor, name='recepcion_proveedor'),
     path('actualizar_cantidad_llegada/', actualizar_cantidad_llegada, name='actualizar_cantidad_llegada'),
+
+    path('buscar_marca/', buscar_marca, name='buscar_marca'),
+    
+
+    path('publicar_productos/', views.publicar_productos, name='publicar_productos'),
+    
 ]
 
 # Clave de google maps api

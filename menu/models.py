@@ -174,6 +174,11 @@ class RecepcionProducto(models.Model):
     fecha_agregado = models.DateTimeField(default=timezone.now)
     confirmado = models.BooleanField(default=False)
     en_resumen = models.BooleanField(default=True)  # Visible en resumen de compra
+    precio_venta = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Precio de venta')
+    marca = models.CharField(max_length=30, default='Sin Marca')
+    descripcion = models.CharField(max_length=50)
+    estado = models.CharField(max_length=20, default='en_resumen')  # Nuevo campo de estado
+    
 
     def __str__(self):
         return f"{self.carrito_item.producto.nombre_producto} - Recepción"

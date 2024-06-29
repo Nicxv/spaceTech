@@ -44,36 +44,25 @@
         </button>
     </div>
 
-    <div class="container my-4">
-        <div class="row">
-            {% for producto in productos %}
-            <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
-                <div class="card h-100">
-                    <a href="{% url 'detalle_producto' producto.id %}">
-                        {% if producto.foto %}
-                            <img class="card-img-top img-fluid" src="{{ producto.foto.url }}" alt="{{ producto.nombre }}">
-                        {% else %}
-                            <img class="card-img-top img-fluid" src="{% static 'img/default.jpg' %}" alt="Imagen predeterminada">
-                        {% endif %}
-                    </a>
-                    <div class="card-body text-start">
-                        <p class="product-name "><span class="marca">{{ producto.marca|upper }}</span><br>{{ producto.nombre }}</p>
-                        <p class="product-price">
-                            {% if producto.precio_oferta %}
-                                <del>{{ producto.precio|format_price}}</del>
-                                <br>
-                                {{ producto.precio_oferta|format_price}}
-                                <span class="product-discount">{{ producto.descuento|floatformat:0 }}%</span>
-                            {% else %}
-                                {{ producto.precio|format_price }}
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
+    {% for producto in productos %}
+    <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+        <div class="card h-100">
+            <a href="{% url 'detalle_producto' producto.id %}">
+                <img class="card-img-top img-fluid" src="{{ producto.carrito_item.producto.foto_producto.url }}" alt="{{ producto.carrito_item.producto.nombre_producto }}">
+            </a>
+            <div class="card-body text-start">
+                <h5 class="card-title">{{ producto.carrito_item.producto.nombre_producto }}</h5>
+                <p class="card-text">{{ producto.precio_venta }}</p>
             </div>
-            {% endfor %}
-        </div>  
+        </div>
     </div>
+    {% endfor %}
+    
+
+
+
+    
+
    
     <!-- Fondo de desenfoque -->
     <div class="blur-background" id="blur-background"></div>
