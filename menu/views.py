@@ -1,3 +1,4 @@
+from decimal import Decimal
 from pyexpat.errors import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,10 +16,14 @@ from django.shortcuts import render
 from .models import RecepcionProducto
 
 def home_view(request):
-    # Filtramos los productos que deben mostrarse en el inicio desde RecepcionProducto
     productos = RecepcionProducto.objects.filter(en_resumen=True)
-    return render(request, 'home.html', {'productos': productos})
 
+    # Asegurarnos de que todos los productos tengan un precio_venta válido
+    for producto in productos:
+        if not isinstance(producto.precio_venta, (int, float, Decimal)):
+            producto.precio_venta = Decimal('0.0')
+    
+    return render(request, 'home.html', {'productos': productos})
 
 def busqueda_productos(request):
 

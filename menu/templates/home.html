@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-    
     {% load custom_filters %}
     {% load static %}
 <head>
@@ -11,6 +10,7 @@
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
 </head>
 <body style="background-color: #eff0f1;">
+
     {% include "plantilla/menu.html" %}
     <div class="container mt-5">
         {% if messages %}
@@ -61,26 +61,9 @@
             {% endfor %}
         </div>
     </div>
-<<<<<<< HEAD
-=======
-    
 
 
 
-    
-
-   
-    <!-- Fondo de desenfoque -->
-    <div class="blur-background" id="blur-background"></div>
-    
-    <!-- Botón de cerrar -->
-    <button id="close-button" onclick="cerrarLoginForm()">×</button>
-    
-    <!-- Formulario de inicio de sesión -->
-    <div id="login-form">
-        {% include 'login.html' %}
-    </div>
->>>>>>> 7dba8f523a66b7d4d80f4ccde6c4d203821b0639
     
     <footer class="bg-dark text-white text-center py-4">
       <div class="container">
