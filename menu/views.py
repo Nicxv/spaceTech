@@ -11,8 +11,12 @@ from menu.models import Articulos, Carrito, CarritoItem, Usuario, Venta, Detalle
 
 
 # Create your views here.
+from django.shortcuts import render
+from .models import RecepcionProducto
+
 def home_view(request):
-    productos = Articulos.objects.all() 
+    # Filtramos los productos que deben mostrarse en el inicio desde RecepcionProducto
+    productos = RecepcionProducto.objects.filter(en_resumen=True)
     return render(request, 'home.html', {'productos': productos})
 
 
@@ -103,9 +107,19 @@ def profile_view(request):
         # Si el usuario no está autenticado, redirigir a la página de inicio de sesión
         return redirect('login')
 
-def detalles(request):
-    productos = Articulos.objects.all() 
-    return render(request, 'detalles.html', {'productos': productos} )
+# views.py
+from django.shortcuts import render, get_object_or_404
+from .models import RecepcionProducto
+
+# views.py
+from django.shortcuts import render, get_object_or_404
+from .models import RecepcionProducto
+
+def detalle_producto(request, id):
+    producto = get_object_or_404(RecepcionProducto, pk=id)
+    return render(request, 'detalle_producto.html', {'producto': producto})
+
+
 
 
 def publicidad(request):
@@ -217,15 +231,19 @@ def agregar_producto(request):
         form = ArticulosForm()
     return render(request, 'agregarP.html', {'form': form})
 
+from django.shortcuts import render, get_object_or_404
+from .models import RecepcionProducto, Carrito, CarritoItem
 
 def detalle_producto(request, producto_id):
-    producto = get_object_or_404(Articulos, id=producto_id)
+    producto = get_object_or_404(RecepcionProducto, id=producto_id)
     
     carrito_items_count = 0
     if request.user.is_authenticated:
         carrito, created = Carrito.objects.get_or_create(usuario=request.user)
         carrito_items_count = CarritoItem.objects.filter(carrito=carrito).count()
-    return render(request, 'detalle_producto.html', {'producto': producto,  'carrito_items_count': carrito_items_count})
+    
+    return render(request, 'detalle_producto.html', {'producto': producto, 'carrito_items_count': carrito_items_count})
+
 
 def eliminar_producto(request, producto_id):
     producto = get_object_or_404(Articulos, id=producto_id)
@@ -678,6 +696,7 @@ def disminuir_cantidad(request, item_id):
     return redirect('proveedor_carrito')
 
 
+
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import ProveedorCarrito, ProveedorCarritoItem
@@ -685,7 +704,7 @@ from .models import ProveedorCarrito, ProveedorCarritoItem
 @login_required
 def resumen_compra(request):
     carrito, created = ProveedorCarrito.objects.get_or_create(usuario=request.user)
-    items = ProveedorCarritoItem.objects.filter(carrito=carrito)
+    items = ProveedorCarritoItem.objects.filter(carrito=carrito, en_resumen=True)  # Filtrar solo los productos en resumen
     total = sum(item.producto.precio_costo * item.cantidad for item in items)
     
     # Agrupar los productos por proveedor y calcular subtotales
@@ -704,6 +723,7 @@ def resumen_compra(request):
         'subtotales_by_proveedor': subtotales_by_proveedor,
         'total': total
     })
+
 
 from fpdf import FPDF
 from io import BytesIO
@@ -843,13 +863,6 @@ class PDF(FPDF):
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, f"Subtotal: ${subtotal:,.2f}", 0, 1, 'R')
 
-from django.core.mail import EmailMessage
-from django.conf import settings
-from io import BytesIO
-from .models import ProveedorCarritoItem, Proveedor, ProveedorCarrito
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 
 from io import BytesIO
 from django.core.mail import EmailMessage
@@ -896,7 +909,10 @@ def aceptar_producto(request, proveedor_id):
             defaults={
                 'cantidad_llegada': 0,  # Puedes ajustar según la lógica de negocio
                 'confirmado': False,  # Suponiendo que inicialmente no está confirmado
-                'en_resumen': True   # Si debe aparecer en el resumen
+                'estado': 'en_recepcion',  # Actualizamos el estado
+                'precio_venta': 0.0,  # Valor por defecto para evitar errores
+                'marca': item.producto.nombre_producto,  # Puedes ajustar este valor si tienes un campo específico para la marca
+                'descripcion': item.producto.nombre_producto  # Puedes ajustar este valor si tienes un campo específico para la descripción
             }
         )
         item.en_resumen = False  # Oculta el ítem del resumen de compra sin borrarlo
@@ -904,6 +920,7 @@ def aceptar_producto(request, proveedor_id):
 
     messages.success(request, 'Resumen de compra enviado por email exitosamente.')
     return redirect('proveedor_list')
+
 
 
 
@@ -1346,11 +1363,57 @@ from .models import ProveedorCarritoItem, Proveedor
 @login_required
 def recepcion_proveedor(request):
     recepciones = RecepcionProducto.objects.filter(
-        carrito_item__carrito__usuario=request.user,
-        confirmado=False
+        carrito_item__carrito__usuario=request.user
     ).select_related('carrito_item__producto', 'carrito_item__producto__proveedor')
-
-    print(recepciones)  # Ver los datos recuperados
 
     return render(request, 'recepcion_proveedor.html', {'recepciones': recepciones})
 
+from django.http import JsonResponse
+from .models import RecepcionProducto
+
+def buscar_marca(request):
+    if request.is_ajax() and 'term' in request.GET:
+        qs = RecepcionProducto.objects.filter(marca__icontains=request.GET.get('term')).distinct()
+        marcas = list(qs.values_list('marca', flat=True))
+        return JsonResponse(marcas, safe=False)
+    return JsonResponse([], safe=False)
+
+from django.shortcuts import redirect
+from .models import RecepcionProducto
+
+
+from django.shortcuts import render, redirect
+from .models import RecepcionProducto
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+
+
+
+
+
+@login_required
+def publicar_productos(request):
+    if request.method == 'POST':
+        for item in RecepcionProducto.objects.filter(carrito_item__carrito__usuario=request.user, estado='en_recepcion'):
+            item_id_str = str(item.id)
+            cantidad_llegada = request.POST.get(f'cantidad_llegada_{item_id_str}')
+            precio_venta = request.POST.get(f'precio_venta_{item_id_str}')
+            marca = request.POST.get(f'marca_{item_id_str}')
+            descripcion = request.POST.get(f'descripcion_{item_id_str}')
+            publicar = request.POST.get(f'publicar_{item_id_str}')
+
+            item.cantidad_llegada = int(cantidad_llegada) if cantidad_llegada else item.cantidad_llegada
+            item.precio_venta = float(precio_venta) if precio_venta else item.precio_venta
+            item.marca = marca if marca else item.marca
+            item.descripcion = descripcion if descripcion else item.descripcion
+
+            if publicar == 'true':
+                if item.cantidad_llegada >= 1:
+                    item.estado = 'publicado'
+                    item.save()
+                else:
+                    messages.error(request, f'El producto {item.carrito_item.producto.nombre_producto} debe tener al menos 1 en cantidad llegada para ser publicado.')
+
+        return redirect('recepcion_proveedor')
+    else:
+        return redirect('recepcion_proveedor')

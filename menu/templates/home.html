@@ -44,36 +44,43 @@
         </button>
     </div>
 
-    <div class="container my-4">
+    <div class="container mt-5">
         <div class="row">
             {% for producto in productos %}
             <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
                 <div class="card h-100">
                     <a href="{% url 'detalle_producto' producto.id %}">
-                        {% if producto.foto %}
-                            <img class="card-img-top img-fluid" src="{{ producto.foto.url }}" alt="{{ producto.nombre }}">
-                        {% else %}
-                            <img class="card-img-top img-fluid" src="{% static 'img/default.jpg' %}" alt="Imagen predeterminada">
-                        {% endif %}
+                        <img class="card-img-top img-fluid" src="{{ producto.carrito_item.producto.foto_producto.url }}" alt="{{ producto.carrito_item.producto.nombre_producto }}">
                     </a>
                     <div class="card-body text-start">
-                        <p class="product-name "><span class="marca">{{ producto.marca|upper }}</span><br>{{ producto.nombre }}</p>
-                        <p class="product-price">
-                            {% if producto.precio_oferta %}
-                                <del>{{ producto.precio|format_price}}</del>
-                                <br>
-                                {{ producto.precio_oferta|format_price}}
-                                <span class="product-discount">{{ producto.descuento|floatformat:0 }}%</span>
-                            {% else %}
-                                {{ producto.precio|format_price }}
-                            {% endif %}
-                        </p>
+                        <h5 class="card-title">{{ producto.carrito_item.producto.nombre_producto }}</h5>
+                        <p class="card-text">{{ producto.precio_venta }}</p>
                     </div>
                 </div>
             </div>
             {% endfor %}
-        </div>  
+        </div>
     </div>
+<<<<<<< HEAD
+=======
+    
+
+
+
+    
+
+   
+    <!-- Fondo de desenfoque -->
+    <div class="blur-background" id="blur-background"></div>
+    
+    <!-- Botón de cerrar -->
+    <button id="close-button" onclick="cerrarLoginForm()">×</button>
+    
+    <!-- Formulario de inicio de sesión -->
+    <div id="login-form">
+        {% include 'login.html' %}
+    </div>
+>>>>>>> 7dba8f523a66b7d4d80f4ccde6c4d203821b0639
     
     <footer class="bg-dark text-white text-center py-4">
       <div class="container">

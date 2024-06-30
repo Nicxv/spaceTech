@@ -43,6 +43,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#">Computación</a>
                 </li>
+<<<<<<< HEAD
                 {% if user.is_authenticated %}
                     {% if request.session.role == 'ADMIN' %}
                         <li class="nav-item dropdown">
@@ -68,6 +69,21 @@
                             </ul>
                         </li>
                     {% endif %}
+=======
+                {% if user.is_authenticated and user.is_superuser %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Administrador 
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'listaP' %}">Productos</a></li>
+                        <li><a class="dropdown-item" href="{% url 'listaU' %}">Usuarios</a></li>
+                        <li><a class="dropdown-item" href="{% url 'gestion_ventas'%}">Registro de ventas</a></li>
+                        <li><a class="dropdown-item" href="{% url 'recepcion_proveedor' %}">recepcion productos</a></li>
+                        <li><a class="dropdown-item" href="{% url 'proveedor_list' %}">Proveedor</a></li> 
+                    </ul>
+                </li>
+>>>>>>> 7dba8f523a66b7d4d80f4ccde6c4d203821b0639
                 {% endif %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
