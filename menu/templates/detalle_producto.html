@@ -1,4 +1,5 @@
 {% load static %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,7 +11,7 @@
 </head>
 <body>
     {% include "plantilla/menu.html" %}
-    <div class="container">
+    <div class="container mt-5">
         <div class="row product-details">
             <div class="col-md-6">
                 <img id="main-image" src="{{ producto.carrito_item.producto.foto_producto.url }}" alt="{{ producto.carrito_item.producto.nombre_producto }}" class="img-fluid product-img">
@@ -20,6 +21,7 @@
                     <h2>{{ producto.carrito_item.producto.nombre_producto }}</h2>
                     <p>Marca: {{ producto.marca }}</p>
                     <p>Descripción: {{ producto.descripcion }}</p>
+                    <p>Stock: {{ producto.cantidad_llegada }}</p>
                     <p class="price">Precio de Venta: ${{ producto.precio_venta }}</p>
                     <button class="btn btn-primary">Agregar al carrito</button>
                 </div>
@@ -27,5 +29,6 @@
         </div>
     </div>
     <!-- Scripts y footer -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

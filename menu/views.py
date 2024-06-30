@@ -830,13 +830,6 @@ class PDF(FPDF):
         self.set_font('Arial', 'B', 12)
         self.cell(0, 10, f"Subtotal: ${subtotal:,.2f}", 0, 1, 'R')
 
-from django.core.mail import EmailMessage
-from django.conf import settings
-from io import BytesIO
-from .models import ProveedorCarritoItem, Proveedor, ProveedorCarrito
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 
 from io import BytesIO
 from django.core.mail import EmailMessage
@@ -884,9 +877,9 @@ def aceptar_producto(request, proveedor_id):
                 'cantidad_llegada': 0,  # Puedes ajustar según la lógica de negocio
                 'confirmado': False,  # Suponiendo que inicialmente no está confirmado
                 'estado': 'en_recepcion',  # Actualizamos el estado
-                'precio_venta': item.producto.precio_costo,  # Ajusta esto según tu lógica
-                'marca': 'Sin Marca',  # Marca predeterminada
-                'descripcion': item.producto.nombre_producto  # Descripción basada en el nombre del producto
+                'precio_venta': 0.0,  # Valor por defecto para evitar errores
+                'marca': item.producto.nombre_producto,  # Puedes ajustar este valor si tienes un campo específico para la marca
+                'descripcion': item.producto.nombre_producto  # Puedes ajustar este valor si tienes un campo específico para la descripción
             }
         )
         item.en_resumen = False  # Oculta el ítem del resumen de compra sin borrarlo
@@ -894,7 +887,6 @@ def aceptar_producto(request, proveedor_id):
 
     messages.success(request, 'Resumen de compra enviado por email exitosamente.')
     return redirect('proveedor_list')
-
 
 
 
@@ -1338,11 +1330,8 @@ from .models import ProveedorCarritoItem, Proveedor
 @login_required
 def recepcion_proveedor(request):
     recepciones = RecepcionProducto.objects.filter(
-        carrito_item__carrito__usuario=request.user,
-        confirmado=False
+        carrito_item__carrito__usuario=request.user
     ).select_related('carrito_item__producto', 'carrito_item__producto__proveedor')
-
-    print(recepciones)  # Ver los datos recuperados
 
     return render(request, 'recepcion_proveedor.html', {'recepciones': recepciones})
 
@@ -1359,18 +1348,39 @@ def buscar_marca(request):
 from django.shortcuts import redirect
 from .models import RecepcionProducto
 
+
+from django.shortcuts import render, redirect
+from .models import RecepcionProducto
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+
+
+
+
+
+@login_required
 def publicar_productos(request):
     if request.method == 'POST':
-        # Obtenemos los IDs de los productos marcados para publicar desde el formulario
-        productos_ids = [key.split('_')[1] for key, value in request.POST.items() if key.startswith('publicar') and value == 'true']
+        for item in RecepcionProducto.objects.filter(carrito_item__carrito__usuario=request.user, estado='en_recepcion'):
+            item_id_str = str(item.id)
+            cantidad_llegada = request.POST.get(f'cantidad_llegada_{item_id_str}')
+            precio_venta = request.POST.get(f'precio_venta_{item_id_str}')
+            marca = request.POST.get(f'marca_{item_id_str}')
+            descripcion = request.POST.get(f'descripcion_{item_id_str}')
+            publicar = request.POST.get(f'publicar_{item_id_str}')
 
-        # Actualizamos el campo 'estado' para los productos seleccionados
-        for producto_id in productos_ids:
-            producto = RecepcionProducto.objects.get(id=producto_id)
-            producto.estado = 'publicado'  # Marcamos como publicado
-            producto.save()
+            item.cantidad_llegada = int(cantidad_llegada) if cantidad_llegada else item.cantidad_llegada
+            item.precio_venta = float(precio_venta) if precio_venta else item.precio_venta
+            item.marca = marca if marca else item.marca
+            item.descripcion = descripcion if descripcion else item.descripcion
 
-        return redirect('home')  # Redireccionamos a la página de inicio
-    return redirect('recepcion_proveedor')  # Si no es POST, redireccionamos de vuelta
+            if publicar == 'true':
+                if item.cantidad_llegada >= 1:
+                    item.estado = 'publicado'
+                    item.save()
+                else:
+                    messages.error(request, f'El producto {item.carrito_item.producto.nombre_producto} debe tener al menos 1 en cantidad llegada para ser publicado.')
 
-
+        return redirect('recepcion_proveedor')
+    else:
+        return redirect('recepcion_proveedor')

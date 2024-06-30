@@ -46,7 +46,7 @@
                         <td>{{ item.carrito_item.producto.nombre_producto }}</td>
                         <td>{{ item.carrito_item.producto.precio_costo|format_price }}</td>
                         <td>{{ item.carrito_item.cantidad }}</td>
-                        <td><input type="number" name="cantidad_llegada_{{ item.id }}" value="{{ item.cantidad_llegada }}" min="0" max="{{ item.carrito_item.cantidad }}"></td>
+                        <td><input type="number" name="cantidad_llegada_{{ item.id }}" value="{{ item.cantidad_llegada }}" min="1" max="{{ item.carrito_item.cantidad }}"></td>
                         <td><input type="text" name="precio_venta_{{ item.id }}" value="{{ item.precio_venta }}"></td>
                         <td><input type="text" name="marca_{{ item.id }}" class="marca-input" value="{{ item.marca }}"></td>
                         <td><input type="text" name="descripcion_{{ item.id }}" value="{{ item.descripcion }}"></td>
