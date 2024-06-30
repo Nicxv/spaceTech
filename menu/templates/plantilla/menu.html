@@ -38,37 +38,49 @@
                     <a class="nav-link active" aria-current="page" href="/">Inicio</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Telefonia</a>
+                    <a class="nav-link active" aria-current="page" href="#">Telefonía</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Computación</a>
                 </li>
-                {% if user.is_authenticated and user.is_superuser %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Administrador 
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{% url 'listaP' %}">Productos</a></li>
-                        <li><a class="dropdown-item" href="{% url 'listaU' %}">Usuarios</a></li>
-                        <li><a class="dropdown-item" href="{% url 'gestion_ventas'%}">Registro de ventas</a></li>
-                        <li><a class="dropdown-item" href="#">Reportes</a></li>
-                        <li><a class="dropdown-item" href="{% url 'proveedor_list' %}">Proveedor</a></li> 
-                    </ul>
-                </li>
+                {% if user.is_authenticated %}
+                    {% if request.session.role == 'ADMIN' %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Administrador 
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'listaP' %}">Productos</a></li>
+                                <li><a class="dropdown-item" href="{% url 'listaU' %}">Usuarios</a></li>
+                                <li><a class="dropdown-item" href="{% url 'gestion_ventas' %}">Registro de ventas</a></li>
+                                <li><a class="dropdown-item" href="#">Reportes</a></li>
+                                <li><a class="dropdown-item" href="{% url 'proveedor_list' %}">Proveedor</a></li> 
+                            </ul>
+                        </li>
+                    {% elif request.session.role == 'BODEGA' %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Bodeguero
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'gestion_ventas' %}">Registro de ventas</a></li>
+                                <li><a class="dropdown-item" href="{% url 'recepcion_proveedor' %}">Recepción de Proveedor</a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
                 {% endif %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Inicia sesion
+                        Inicia sesión
                     </a>
                     <ul class="dropdown-menu">
                         {% if user.is_authenticated %}
-                        <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar sesión <i class="fa-solid fa-user-slash" style="margin-left: 5px;"></i></li></a>
+                        <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar sesión <i class="fa-solid fa-user-slash" style="margin-left: 5px;"></i></a></li>
                         {% else %}
-                        <li><a class="dropdown-item" onclick="mostrarLoginForm()"> Inicia sesión <i class="fa-solid fa-user" style="margin-left: 15px;"></i></li></a>
-                        <li><a class="dropdown-item" href="{% url 'formulario' %}">Regístrate <i class="fa-regular fa-user" style="margin-left: 30px;"></i></li></a>
+                        <li><a class="dropdown-item" href="{% url 'login' %}"> Inicia sesión <i class="fa-solid fa-user" style="margin-left: 15px;"></i></a></li>
+                        <li><a class="dropdown-item" href="{% url 'formulario' %}">Regístrate <i class="fa-regular fa-user" style="margin-left: 30px;"></i></a></li>
                         {% endif %}
-                        <li><a class="dropdown-item" href="{% url 'profile' %}">Mi cuenta<i class="fa-solid fa-id-card" style="margin-left: 35px;"></i></li></a>
+                        <li><a class="dropdown-item" href="{% url 'profile' %}">Mi cuenta <i class="fa-solid fa-id-card" style="margin-left: 35px;"></i></a></li>
                     </ul>
                 </li>
                 <ul class="navbar-nav mb-2 mb-lg-0">

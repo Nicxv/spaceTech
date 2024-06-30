@@ -40,6 +40,9 @@ def buscar(request):
     return HttpResponse(mensaje)
 
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('/')  # Redirige a la página principal si el usuario ya está autenticado
+    
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -48,12 +51,22 @@ def login_view(request):
             try:
                 user = Usuario.objects.get(email=email)
                 if user.clave == password:
-                    # Crear un objeto User de Django para manejar la autenticación
-                    from django.contrib.auth.models import User
-                    user_django, created = User.objects.get_or_create(username=user.email, defaults={'email': user.email, 'password': user.clave})
-                    auth_login(request, user_django)  # Usamos auth_login para evitar el conflicto de nombres
-                    messages.success(request, 'Inicio de sesión exitoso.')
-                    return redirect('/')  # Redirigir a la página principal
+                    from django.contrib.auth import get_user_model
+                    User = get_user_model()
+                    user_django, created = User.objects.get_or_create(username=user.email, defaults={'email': user.email})
+                    if created:
+                        user_django.set_password(user.clave)
+                        user_django.save()
+
+                    user_django = authenticate(request, username=user.email, password=user.clave)
+                    
+                    if user_django:
+                        auth_login(request, user_django)
+                        request.session['role'] = user.role  # Guardar el rol en la sesión
+                        messages.success(request, 'Inicio de sesión exitoso.')
+                        return redirect('/')  # Redirigir a la página principal
+                    else:
+                        messages.error(request, 'Error en la autenticación del usuario.')
                 else:
                     messages.error(request, 'Correo o contraseña incorrectos.')
             except Usuario.DoesNotExist:
@@ -61,6 +74,17 @@ def login_view(request):
     else:
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
+
+def add_user_role_to_context(view_func):
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            try:
+                user = Usuario.objects.get(email=request.user.username)
+                request.user.role = user.role
+            except Usuario.DoesNotExist:
+                request.user.role = None
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 def logout_view(request):
     logout(request)
@@ -83,9 +107,6 @@ def detalles(request):
     productos = Articulos.objects.all() 
     return render(request, 'detalles.html', {'productos': productos} )
 
-def registro(request):
-    return render(request, 'registro.html')
-
 
 def publicidad(request):
     return render(request, 'publicidad.html')
@@ -94,14 +115,16 @@ def publicidad(request):
 
 #paginas de admin 
 @login_required
-@user_passes_test(lambda u: u.groups.filter(name='Administradores').exists())
 def listaU(request):
-    usuarios = Usuario.objects.all()  # Recupera todos los usuarios
-    return render(request, 'listaU.html', {'usuarios': usuarios})
-
+    role_filter = request.GET.get('role', None)
+    if role_filter:
+        usuarios = Usuario.objects.filter(role=role_filter)
+    else:
+        usuarios = Usuario.objects.all()
+    roles = Usuario.ROLE_CHOICES
+    return render(request, 'listaU.html', {'usuarios': usuarios, 'roles': roles})
 
 @login_required
-@user_passes_test(lambda u: u.groups.filter(name='Administradores').exists())
 def listaP(request):
     productos = Articulos.objects.all()  # Recupera todos los usuarios
     return render(request, 'listaP.html', {'productos': productos})
@@ -116,11 +139,14 @@ def editar_usuario(request, usuario_id):
     if request.method == 'POST':
         form = Usuario2Form(request.POST, instance=usuario)
         if form.is_valid():
-            usuario = form.save()
-            grupo = form.cleaned_data.get('grupo')
-            if grupo:
-                usuario.groups.clear()
-                usuario.groups.add(grupo)
+            usuario = form.save(commit=False)
+            role = form.cleaned_data.get('role')
+
+            # Asignar el rol
+            usuario.role = role
+
+            usuario.save()
+
             messages.success(request, 'Usuario modificado con éxito')
             return redirect('listaU')
     else:
@@ -147,24 +173,31 @@ def modificarP(request, producto_id):
     
     return render(request, 'modificarP.html', {'form': form, 'producto': producto})
 #Plantillas de menu
-
+@add_user_role_to_context
 def menu(request):
-    return render(request, 'plantilla/menu.html')
+    return render(request, 'plantilla/menu.html', {'user': request.user})
 
 def formulario(request):
+    # Redirige a la página principal si el usuario ya está autenticado
+    if request.user.is_authenticated:
+        return redirect('listaU')
+
     mensaje_exito = None
     mensaje_error = None
-    
+
     if request.method == 'POST':
         form = UsuarioForm(request.POST)
         if form.is_valid():
-            form.save()
-            mensaje_exito = "El usuario se registró correctamente."
+            usuario = form.save(commit=False)
+            usuario.role = 'CLIENT'  # Asignar el rol de cliente
+            usuario.save()
+            messages.success(request, 'Registro exitoso. Ahora puedes iniciar sesión.')
+            return redirect('login')  # Redirigir a la página de login después del registro
         else:
             mensaje_error = "Por favor, corrige los errores del formulario."
     else:
         form = UsuarioForm()
-    
+
     return render(request, 'formulario.html', {'form': form, 'mensaje_exito': mensaje_exito, 'mensaje_error': mensaje_error})
 
 from django.shortcuts import render, get_object_or_404, redirect

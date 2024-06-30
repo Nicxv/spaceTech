@@ -1,24 +1,18 @@
 from django import forms
 from . models import Articulos, Usuario
-from django.contrib.auth.models import Group
 
 
 class UsuarioForm(forms.ModelForm):
     class Meta:
         model = Usuario
-        fields = [
-            'nombre_usuario',
-            'nombre',
-            'apellido',
-            'email',
-            'tfno',
-            'clave',
-            'confirmar_clave',
-            'direccion'
-]
+        fields = ['nombre_usuario', 'nombre', 'apellido', 'email', 'tfno', 'clave', 'confirmar_clave', 'direccion']
+        widgets = {
+            'clave': forms.PasswordInput(),
+            'confirmar_clave': forms.PasswordInput(),
+        }
         
 class Usuario2Form(forms.ModelForm):
-    grupo = forms.ModelChoiceField(queryset=Group.objects.all(), required=False, label="Grupo")
+    role = forms.ChoiceField(choices=Usuario.ROLE_CHOICES, label="Rol")
 
     class Meta:
         model = Usuario
@@ -26,9 +20,8 @@ class Usuario2Form(forms.ModelForm):
             'nombre_usuario',
             'nombre',
             'apellido',
-            'email',
             'tfno',
-            'direccion'
+            'role'
         ]
         
 class ArticulosForm(forms.ModelForm):
