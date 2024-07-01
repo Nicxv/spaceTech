@@ -394,7 +394,7 @@ def decrementar_cantidad(request, item_id):
         item.delete()
     return redirect('ver_carrito')
 
-@login_required
+@login_required(login_url='login')  # Redirigir a la página de login si no está autenticado
 def ver_carrito(request):
     carrito, created = Carrito.objects.get_or_create(usuario=request.user)
     items = CarritoItem.objects.filter(carrito=carrito)
