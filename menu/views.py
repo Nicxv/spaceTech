@@ -172,8 +172,13 @@ def editar_usuario(request, usuario_id):
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+<<<<<<< HEAD
 from .models import Articulos, Comuna
 from .forms import ArticulosForm
+=======
+from .models import Articulos, Comuna, RecepcionProducto
+from .forms import ArticulosForm, UpdateProfileForm
+>>>>>>> af5e87bcaf15b32af2a02bb91a59167ce8fb74dc
 
 def modificarP(request, producto_id):
     producto = get_object_or_404(Articulos, id=producto_id)
@@ -306,23 +311,15 @@ def calcular_precio(tiempo, segundos):
 
 def update_profile_view(request):
     usuario = Usuario.objects.get(email=request.user.email)
-    email_original = request.user.email  # Correo electrónico original del usuario
     if request.method == 'POST':
-        form = Usuario2Form(request.POST, instance=usuario)
+        form = UpdateProfileForm(request.POST, instance=usuario)
         if form.is_valid():
-            nuevo_email = form.cleaned_data['email']
-            if email_original != nuevo_email:
-                email_changed = True
-                logout(request)  # Cerrar sesión automáticamente si el email cambia
-            else:
-                email_changed = False
             form.save()
             return redirect('profile')
     else:
-        form = Usuario2Form(instance=usuario)
-        email_changed = False
+        form = UpdateProfileForm(instance=usuario)
 
-    return render(request, 'update_profile.html', {'form': form, 'email_changed': email_changed})
+    return render(request, 'update_profile.html', {'form': form})
 
 
 

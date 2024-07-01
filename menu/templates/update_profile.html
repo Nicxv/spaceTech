@@ -6,42 +6,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Actualizar perfil</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f0f0f5;
+            color: #343a40;
+        }
+        .container {
+            margin-top: 50px;
+            max-width: 600px;  /* Ajustar el ancho del contenedor */
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .card-title {
+            color: #8C52FF;
+        }
+        .form-label {
+            font-weight: bold;
+        }
+        .input-group-text {
+            background-color: #8C52FF;
+            color: white;
+            border: none;
+        }
+        .btn-primary-custom {
+            background-color: #8C52FF;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-primary-custom:hover {
+            background-color: #6a41d8;
+        }
+        .form-control:focus {
+            border-color: #8C52FF;
+            box-shadow: 0 0 0 0.2rem rgba(140, 82, 255, 0.25);
+        }
+    </style>
 </head>
 <body>
     {% include "plantilla/menu.html" %}
-    <div class="container mt-5">
+    <div class="container">
         <div class="card">
             <div class="card-body">
                 <h1 class="card-title text-center mb-4">Actualizar datos</h1>
                 <form method="POST">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="nombre_usuario" class="form-label">Nombre de usuario</label>
-                        <input type="text" class="form-control" id="nombre_usuario" name="nombre_usuario" value="{{ form.nombre_usuario.value }}">
+                        <label for="nombre_usuario" class="form-label">
+                            <i class="fas fa-user"></i> Nombre de usuario
+                        </label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <input type="text" class="form-control" id="nombre_usuario" name="nombre_usuario" value="{{ form.nombre_usuario.value }}">
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" value="{{ form.nombre.value }}">
+                        <label for="nombre" class="form-label">
+                            <i class="fas fa-id-card"></i> Nombre
+                        </label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ form.nombre.value }}">
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="apellido" class="form-label">Apellido</label>
-                        <input type="text" class="form-control" id="apellido" name="apellido" value="{{ form.apellido.value }}">
+                        <label for="apellido" class="form-label">
+                            <i class="fas fa-id-card-alt"></i> Apellido
+                        </label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="fas fa-id-card-alt"></i>
+                            </div>
+                            <input type="text" class="form-control" id="apellido" name="apellido" value="{{ form.apellido.value }}">
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="email" class="form-label">Correo electrónico</label>
-                        <input type="email" class="form-control" id="email" name="email" value="{{ form.email.value }}" onfocus="mostrarMensaje()">
-                        <div id="email-message" class="form-text text-danger d-none">Si cambia su correo electrónico, debe iniciar sesión nuevamente.</div>
+                        <label for="tfno" class="form-label">
+                            <i class="fas fa-phone"></i> Teléfono
+                        </label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <input type="text" class="form-control" id="tfno" name="tfno" value="{{ form.tfno.value }}">
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="tfno" class="form-label">Teléfono</label>
-                        <input type="text" class="form-control" id="tfno" name="tfno" value="{{ form.tfno.value }}">
+                        <label for="direccion" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i> Dirección
+                        </label>
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <input type="text" class="form-control" id="autocomplete" name="direccion" value="{{ form.direccion.value }}">
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="direccion" class="form-label">Dirección</label>
-                        <input type="text" class="form-control" id="autocomplete" name="direccion" value="{{ form.direccion.value }}">
-                    </div>
-                    <div id="map" style="height: 400px; width: 100%;"></div>
-                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <div id="map" style="height: 300px; width: 100%;"></div>
+                    <button type="submit" class="btn btn-primary-custom mt-3">
+                        <i class="fas fa-save"></i> Guardar cambios
+                    </button>
                 </form>
             </div>
         </div>
@@ -55,7 +125,7 @@
 
         function initAutocomplete() {
             map = new google.maps.Map(document.getElementById('map'), {
-                center: {lat: -34.397, lng: 150.644},
+                center: {lat: -33.45, lng: -70.65},  // Centrar el mapa en Santiago, Chile
                 zoom: 8
             });
 
@@ -68,7 +138,10 @@
 
             autocomplete = new google.maps.places.Autocomplete(
                 document.getElementById('autocomplete'),
-                {types: ['geocode']}
+                {
+                    types: ['geocode'],
+                    componentRestrictions: { country: 'CL' }  // Restringir a Chile
+                }
             );
 
             autocomplete.addListener('place_changed', onPlaceChanged);
@@ -133,10 +206,6 @@
                     alert('Geocode was not successful for the following reason: ' + status);
                 }
             });
-        }
-
-        function mostrarMensaje() {
-            document.getElementById('email-message').classList.remove('d-none');
         }
     </script>
 
