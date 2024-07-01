@@ -23,6 +23,11 @@ class Usuario2Form(forms.ModelForm):
             'tfno',
             'role'
         ]
+
+class UpdateProfileForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ['nombre_usuario', 'nombre', 'apellido', 'tfno', 'direccion']        
         
 class ArticulosForm(forms.ModelForm):
     class Meta:
