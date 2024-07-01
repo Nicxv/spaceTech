@@ -154,41 +154,11 @@ class DetalleCompra(models.Model):
         super().save(args, **kwargs)
 
 
-
-class ProductosProveedor(models.Model):
-    proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE, related_name='productos')
-    nombre_producto = models.CharField(max_length=100, verbose_name='Nombre del Producto')
-    foto_producto = models.ImageField(upload_to='productos_proveedor/', verbose_name='Foto del Producto')
-    precio_costo = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Precio de Costo')
-    def __str__(self):
-        return self.nombre_producto    
+   
     
 
-class ProveedorCarrito(models.Model):
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
-    creado_en = models.DateTimeField(auto_now_add=True)
 
-class ProveedorCarritoItem(models.Model):
-    carrito = models.ForeignKey(ProveedorCarrito, on_delete=models.CASCADE)
-    producto = models.ForeignKey(ProductosProveedor, on_delete=models.CASCADE)
-    cantidad = models.IntegerField(default=1)
-    en_resumen = models.BooleanField(default=True)  # Agregar este campo para controlar la visibilidad en Resumen de Compra
 
-    def __str__(self):
-        return f"{self.producto.nombre_producto} - Cantidad: {self.cantidad}"
 
-class RecepcionProducto(models.Model):
-    carrito_item = models.ForeignKey(ProveedorCarritoItem, on_delete=models.CASCADE, related_name='recepciones')
-    cantidad_llegada = models.IntegerField(default=0)
-    fecha_agregado = models.DateTimeField(default=timezone.now)
-    confirmado = models.BooleanField(default=False)
-    en_resumen = models.BooleanField(default=True)
-    precio_venta = models.DecimalField(max_digits=10, decimal_places=0, verbose_name='Precio de venta', default=0)
-    marca = models.CharField(max_length=30, default='Sin Marca')
-    descripcion = models.CharField(max_length=50)
-    estado = models.CharField(max_length=20, default='en_resumen')
-
-    def __str__(self):
-        return f"{self.carrito_item.producto.nombre_producto} - Recepción"
 
 

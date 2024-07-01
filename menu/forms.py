@@ -80,37 +80,5 @@ class ProveedorForm(forms.ModelForm):
         fields = ['rut_empresa', 'nombre_empresa', 'representante_legal', 'contacto_empresa', 'direccion_proveedor', 'email_proveedor']
 
 from django import forms
-from .models import ProductosProveedor
 
-class ProductosProveedorForm(forms.ModelForm):
-    class Meta:
-        model = ProductosProveedor
-        fields = ['nombre_producto', 'foto_producto', 'precio_costo']
-        widgets = {
-            'nombre_producto': forms.TextInput(attrs={'class': 'form-control'}),
-            'foto_producto': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'precio_costo': forms.NumberInput(attrs={'class': 'form-control'}),
-        }
 
-from django import forms
-from .models import RecepcionProducto, ProveedorCarritoItem
-class RecepcionProductoForm(forms.ModelForm):
-    class Meta:
-        model = RecepcionProducto
-        fields = ['cantidad_llegada', 'precio_venta', 'marca', 'descripcion']
-        widgets = {
-            'cantidad_llegada': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'precio_venta': forms.NumberInput(attrs={'class': 'form-control'}),
-            'marca': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super(RecepcionProductoForm, self).__init__(*args, **kwargs)
-        # Asigna valores iniciales o ajusta comportamientos aquí si es necesario
-
-    def clean_precio_venta(self):
-        precio_venta = self.cleaned_data.get('precio_venta')
-        if precio_venta is None:
-            raise forms.ValidationError("El precio de venta no puede estar vacío.")
-        return precio_venta
